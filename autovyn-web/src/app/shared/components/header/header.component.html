@@ -1,0 +1,28 @@
+<header class="app-header">
+  <div class="left">
+    <img class="logo" src="/autovyn-logo.png" alt="Autovyn logo" />
+    <div>
+      <p class="label">AUTOVYN</p>
+      <h3>{{ authService.getCurrentUserSnapshot()?.name || title }}</h3>
+      <p class="role">{{ authService.getCurrentUserSnapshot()?.designation }}</p>
+    </div>
+  </div>
+  <div class="right">
+    <app-live-status-badge></app-live-status-badge>
+    <a class="icon-btn notif-btn" [routerLink]="notificationRoute">
+      <mat-icon>notifications</mat-icon>
+      <span class="badge" *ngIf="(unreadCount$ | async) as unread">{{ unread > 99 ? '99+' : unread }}</span>
+    </a>
+    <a class="profile-pill" [routerLink]="profileRoute">
+      <img
+        *ngIf="authService.getCurrentUserSnapshot()?.profilePhotoUrl as profilePhotoUrl; else initialsAvatar"
+        [src]="profilePhotoUrl"
+        [alt]="(authService.getCurrentUserSnapshot()?.name || 'User') + ' profile photo'"
+        class="profile-photo"
+      />
+      <ng-template #initialsAvatar>
+        {{ (authService.getCurrentUserSnapshot()?.name || 'U').charAt(0) }}
+      </ng-template>
+    </a>
+  </div>
+</header>

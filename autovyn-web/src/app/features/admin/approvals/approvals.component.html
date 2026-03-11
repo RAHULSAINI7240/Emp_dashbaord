@@ -1,0 +1,192 @@
+<div class="panel-card">
+  <mat-tab-group>
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <span class="tab-label"><mat-icon>event_available</mat-icon>Leave Approvals</span>
+      </ng-template>
+      <form [formGroup]="leaveFilters" class="filters">
+        <mat-form-field appearance="outline">
+          <mat-icon matPrefix>search</mat-icon>
+          <mat-label>Search</mat-label>
+          <input matInput formControlName="query" placeholder="Employee or reason" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-icon matPrefix>person</mat-icon>
+          <mat-label>Employee</mat-label>
+          <mat-select formControlName="employeeId">
+            <mat-option value="">All</mat-option>
+            <mat-option *ngFor="let user of (users$ | async)" [value]="user.id">{{ user.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-icon matPrefix>pending_actions</mat-icon>
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status">
+            <mat-option value="ALL">All</mat-option>
+            <mat-option value="PENDING">Pending</mat-option>
+            <mat-option value="APPROVED">Approved</mat-option>
+            <mat-option value="DECLINED">Declined</mat-option>
+            <mat-option value="EXPIRED">Expired</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </form>
+      <div class="list">
+        <article *ngFor="let r of (leaveFiltered$ | async)" class="row" [hidden]="r.status !== 'PENDING'">
+          <div>
+            <strong><mat-icon>person</mat-icon>{{ nameOf(r.employeeId) }} | {{ r.type }}</strong>
+            <p>{{ r.reason }} | {{ r.dates.join(', ') }}</p>
+          </div>
+          <div class="row-actions">
+            <button mat-button color="primary" (click)="leaveAction(r.id, 'APPROVED')">
+              <mat-icon>check_circle</mat-icon>
+              Approve
+            </button>
+            <button mat-button color="warn" (click)="leaveAction(r.id, 'DECLINED')">
+              <mat-icon>cancel</mat-icon>
+              Decline
+            </button>
+          </div>
+        </article>
+        <article *ngFor="let r of (leaveFiltered$ | async)" class="row status-row" [hidden]="r.status === 'PENDING'">
+          <div>
+            <strong><mat-icon>person</mat-icon>{{ nameOf(r.employeeId) }} | {{ r.type }}</strong>
+            <p>{{ r.reason }}</p>
+          </div>
+          <span class="chip {{ r.status }}">
+            <mat-icon>{{ statusIcon(r.status) }}</mat-icon>
+            {{ r.status }}
+          </span>
+        </article>
+      </div>
+    </mat-tab>
+
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <span class="tab-label"><mat-icon>fact_check</mat-icon>ARS Approvals</span>
+      </ng-template>
+      <form [formGroup]="arsFilters" class="filters">
+        <mat-form-field appearance="outline">
+          <mat-icon matPrefix>search</mat-icon>
+          <mat-label>Search</mat-label>
+          <input matInput formControlName="query" placeholder="Employee or reason" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-icon matPrefix>person</mat-icon>
+          <mat-label>Employee</mat-label>
+          <mat-select formControlName="employeeId">
+            <mat-option value="">All</mat-option>
+            <mat-option *ngFor="let user of (users$ | async)" [value]="user.id">{{ user.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-icon matPrefix>pending_actions</mat-icon>
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status">
+            <mat-option value="ALL">All</mat-option>
+            <mat-option value="PENDING">Pending</mat-option>
+            <mat-option value="APPROVED">Approved</mat-option>
+            <mat-option value="DECLINED">Declined</mat-option>
+            <mat-option value="EXPIRED">Expired</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </form>
+      <div class="list">
+        <article *ngFor="let r of (arsFiltered$ | async)" class="row" [hidden]="r.status !== 'PENDING'">
+          <div>
+            <strong><mat-icon>person</mat-icon>{{ nameOf(r.employeeId) }} | {{ r.date }}</strong>
+            <p>{{ r.reason }} | {{ r.missingType }}</p>
+          </div>
+          <div class="row-actions">
+            <button mat-button color="primary" (click)="arsAction(r.id, 'APPROVED')">
+              <mat-icon>check_circle</mat-icon>
+              Approve
+            </button>
+            <button mat-button color="warn" (click)="arsAction(r.id, 'DECLINED')">
+              <mat-icon>cancel</mat-icon>
+              Decline
+            </button>
+          </div>
+        </article>
+        <article *ngFor="let r of (arsFiltered$ | async)" class="row status-row" [hidden]="r.status === 'PENDING'">
+          <div>
+            <strong><mat-icon>person</mat-icon>{{ nameOf(r.employeeId) }} | {{ r.date }}</strong>
+            <p>{{ r.reason }}</p>
+          </div>
+          <span class="chip {{ r.status }}">
+            <mat-icon>{{ statusIcon(r.status) }}</mat-icon>
+            {{ r.status }}
+          </span>
+        </article>
+      </div>
+    </mat-tab>
+
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <span class="tab-label"><mat-icon>photo_camera</mat-icon>Login Tracker</span>
+      </ng-template>
+      <form [formGroup]="punchFilters" class="filters punch-filters">
+        <mat-form-field appearance="outline">
+          <mat-icon matPrefix>search</mat-icon>
+          <mat-label>Search</mat-label>
+          <input matInput formControlName="query" placeholder="Employee, date, location" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-icon matPrefix>person</mat-icon>
+          <mat-label>Employee</mat-label>
+          <mat-select formControlName="employeeId">
+            <mat-option value="">All</mat-option>
+            <mat-option *ngFor="let user of (users$ | async)" [value]="user.id">{{ user.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-icon matPrefix>place</mat-icon>
+          <mat-label>Location Type</mat-label>
+          <mat-select formControlName="locationType">
+            <mat-option value="ALL">All</mat-option>
+            <mat-option value="OFFICE_ZONE">Office Zone</mat-option>
+            <mat-option value="HOME_ZONE">Home Zone</mat-option>
+            <mat-option value="REMOTE_ZONE">Remote Zone</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-icon matPrefix>face</mat-icon>
+          <mat-label>Face Scan</mat-label>
+          <mat-select formControlName="scanType">
+            <mat-option value="ALL">All</mat-option>
+            <mat-option value="FACE_DETECTOR">Face Detector</mat-option>
+            <mat-option value="CAMERA_ONLY">Camera Only</mat-option>
+            <mat-option value="SIMULATED">Simulated</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </form>
+      <div class="list">
+        <article class="row audit-row" *ngFor="let r of (punchAuditFiltered$ | async)">
+          <div class="audit-main">
+            <strong><mat-icon>person</mat-icon>{{ r.employeeName }} | {{ r.date }}</strong>
+            <p>
+              <mat-icon>schedule</mat-icon>{{ r.punchIn ? (r.punchIn | date: 'hh:mm:ss a') : '--:--' }} to
+              {{ r.punchOut ? (r.punchOut | date: 'hh:mm:ss a') : '--:--' }}
+            </p>
+            <p>
+              <mat-icon>pin_drop</mat-icon>{{ locationTypeLabel(r.inLocation?.locationType) }}
+              <span *ngIf="r.inLocation">| {{ r.inLocation.lat | number: '1.4-4' }}, {{ r.inLocation.lng | number: '1.4-4' }}</span>
+            </p>
+            <p class="chip-row">
+              <span class="chip mini">{{ scanTypeLabel(r.faceScanType) }}</span>
+              <span class="chip mini">{{ r.mode }}</span>
+            </p>
+          </div>
+          <div class="audit-photo-box">
+            <img *ngIf="r.punchInPhoto; else noPhoto" [src]="r.punchInPhoto" alt="Punch in photo" class="punch-photo" />
+            <ng-template #noPhoto>
+              <span class="placeholder"><mat-icon>no_photography</mat-icon>No photo</span>
+            </ng-template>
+          </div>
+        </article>
+        <article class="row" *ngIf="(punchAuditFiltered$ | async)?.length === 0">
+          <span class="placeholder"><mat-icon>history_toggle_off</mat-icon>No punch-in records found</span>
+        </article>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

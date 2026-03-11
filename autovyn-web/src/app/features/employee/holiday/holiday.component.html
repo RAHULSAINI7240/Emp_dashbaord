@@ -1,0 +1,49 @@
+<div class="create-actions" *ngIf="canCreate">
+  <button type="button" class="create-btn" (click)="openCreateDialog()">Create Festival Post</button>
+</div>
+
+<div class="dialog-backdrop" *ngIf="showCreateDialog" (click)="closeCreateDialog()"></div>
+<article class="dialog-card panel-card" *ngIf="showCreateDialog">
+  <div class="dialog-head">
+    <h3>Create Holiday / Festival Post</h3>
+    <button type="button" class="icon-close" (click)="closeCreateDialog()">✕</button>
+  </div>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="dialog-form">
+    <input type="date" formControlName="date" />
+    <input formControlName="name" placeholder="Holiday name (e.g. Holi Celebration)" />
+    <input formControlName="imageUrl" placeholder="Holiday banner image URL (optional)" />
+    <div class="dialog-actions">
+      <button type="button" class="cancel-btn" (click)="closeCreateDialog()">Cancel</button>
+      <button type="submit" [disabled]="posting">{{ posting ? 'Posting...' : 'Create Post' }}</button>
+    </div>
+  </form>
+</article>
+
+<div class="panel-card hero" *ngIf="holidays.length; else noHolidays">
+  <button type="button" class="icon-btn" (click)="prev()">&lt;</button>
+  <div>
+    <p>Upcoming Holiday</p>
+    <h2>{{ holidays[index].name }}</h2>
+    <h4>{{ holidays[index].date | date: 'MMM d, y' }}</h4>
+    <img *ngIf="holidays[index].imageUrl" [src]="holidays[index].imageUrl!" [alt]="holidays[index].name + ' banner'" class="hero-banner" />
+  </div>
+  <button type="button" class="icon-btn" (click)="next()">&gt;</button>
+</div>
+
+<div class="grid-3 list">
+  <article *ngFor="let h of holidays" class="panel-card">
+    <img *ngIf="h.imageUrl" [src]="h.imageUrl!" [alt]="h.name + ' banner'" class="list-banner" />
+    <h4>{{ h.name }}</h4>
+    <p>{{ h.date | date: 'fullDate' }}</p>
+  </article>
+</div>
+
+<ng-template #noHolidays>
+  <div class="panel-card hero">
+    <div>
+      <p>Holiday Calendar</p>
+      <h2>No holidays configured</h2>
+      <h4>Please ask admin or HR to create holidays</h4>
+    </div>
+  </div>
+</ng-template>

@@ -1,0 +1,28 @@
+<div class="create-actions" *ngIf="canCreate">
+  <button type="button" class="create-btn" (click)="openCreateDialog()">Create Announcement</button>
+</div>
+
+<div class="dialog-backdrop" *ngIf="showCreateDialog" (click)="closeCreateDialog()"></div>
+<article class="dialog-card panel-card" *ngIf="showCreateDialog">
+  <div class="dialog-head">
+    <h3>Create Announcement</h3>
+    <button type="button" class="icon-close" (click)="closeCreateDialog()">✕</button>
+  </div>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="dialog-form">
+    <input formControlName="title" placeholder="Title" />
+    <textarea formControlName="text" rows="4" placeholder="Announcement message"></textarea>
+    <input formControlName="imageUrl" placeholder="Banner image URL (optional)" />
+    <div class="dialog-actions">
+      <button type="button" class="cancel-btn" (click)="closeCreateDialog()">Cancel</button>
+      <button type="submit" [disabled]="posting">{{ posting ? 'Publishing...' : 'Publish' }}</button>
+    </div>
+  </form>
+</article>
+
+<section class="grid">
+  <article *ngFor="let item of announcements" class="panel-card card">
+    <img [src]="item.image || 'https://picsum.photos/seed/autovyn-default/680/260'" [alt]="item.title" />
+    <h3>{{ item.title }}</h3>
+    <p>{{ item.text }}</p>
+  </article>
+</section>

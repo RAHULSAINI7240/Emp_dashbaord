@@ -1,0 +1,135 @@
+<ng-container *ngIf="vm$ | async as vm">
+  <section class="hero-card panel-card">
+    <div>
+      <p class="eyebrow">Admin Command Center</p>
+      <h1>Dynamic workforce, project, and performance overview</h1>
+      <p class="hero-copy">
+        Monitor active projects, employee work coverage, approvals, and AI-style insights from one admin dashboard.
+      </p>
+    </div>
+    <div class="hero-date">
+      <span>{{ today | date: 'EEEE' }}</span>
+      <strong>{{ today | date: 'dd MMM yyyy' }}</strong>
+      <small>Last 7-day tracking window</small>
+    </div>
+  </section>
+
+  <section class="stats-grid">
+    <article *ngFor="let card of vm.statCards; trackBy: trackByLabel" class="panel-card stat-card" [class]="card.tone">
+      <p class="card-head">
+        <mat-icon>{{ card.icon }}</mat-icon>
+        <span>{{ card.label }}</span>
+      </p>
+      <h2>{{ card.value }}</h2>
+      <small>{{ card.helper }}</small>
+    </article>
+  </section>
+
+  <section class="dashboard-grid">
+    <article class="panel-card insights-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">AI Insights</p>
+          <h3>Smart operational analysis</h3>
+        </div>
+        <a routerLink="/admin/projects" class="action-link">Open Projects</a>
+      </div>
+
+      <div class="insight-list">
+        <article *ngFor="let insight of vm.aiInsights" class="insight-row" [class]="insight.tone">
+          <span class="icon-wrap"><mat-icon>{{ insight.icon }}</mat-icon></span>
+          <div>
+            <strong>{{ insight.title }}</strong>
+            <p>{{ insight.detail }}</p>
+          </div>
+        </article>
+      </div>
+    </article>
+
+    <article class="panel-card focus-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Project Watch</p>
+          <h3>Active project control</h3>
+        </div>
+        <a routerLink="/admin/projects" class="action-link">View all</a>
+      </div>
+
+      <div class="project-list">
+        <article *ngFor="let project of vm.focusProjects; trackBy: trackByProject" class="project-row">
+          <div class="project-top">
+            <div>
+              <strong>{{ project.name }}</strong>
+              <p>{{ project.client }}</p>
+            </div>
+            <span class="status-chip" [class.active]="project.status.toLowerCase() === 'active'">{{ project.status }}</span>
+          </div>
+          <div class="project-meta">
+            <span><mat-icon>groups</mat-icon>{{ project.members.length }} members</span>
+            <span><mat-icon>category</mat-icon>{{ project.category }}</span>
+            <span><mat-icon>person</mat-icon>{{ project.createdBy.name }}</span>
+          </div>
+        </article>
+      </div>
+    </article>
+  </section>
+
+  <section class="dashboard-grid lower">
+    <article class="panel-card workforce-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Employee Visibility</p>
+          <h3>Who is working on what</h3>
+        </div>
+        <a routerLink="/admin/employees" class="action-link">Open employees</a>
+      </div>
+
+      <div class="employee-table">
+        <article *ngFor="let item of vm.teamSnapshots; trackBy: trackByUser" class="employee-row">
+          <div>
+            <strong>{{ item.user.name }}</strong>
+            <p>{{ item.user.designation }}{{ item.user.employeeId ? ' • ' + item.user.employeeId : '' }}</p>
+          </div>
+          <div class="metric">
+            <span>Projects</span>
+            <strong>{{ item.projectCount }}</strong>
+          </div>
+          <div class="metric">
+            <span>Tracked</span>
+            <strong>{{ item.trackedHours }}h</strong>
+          </div>
+          <div class="metric">
+            <span>Productivity</span>
+            <strong>{{ item.productivityPercent }}%</strong>
+          </div>
+          <div class="status-col">
+            <span class="live-chip" [class]="item.liveStatus.toLowerCase()">{{ item.liveStatus }}</span>
+          </div>
+        </article>
+      </div>
+    </article>
+
+    <article class="panel-card performers-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Top Focus</p>
+          <h3>Best work performers</h3>
+        </div>
+      </div>
+
+      <div class="performer-list">
+        <article *ngFor="let employee of vm.topPerformers; let index = index; trackBy: trackByUser" class="performer-row">
+          <span class="rank">#{{ index + 1 }}</span>
+          <div class="performer-meta">
+            <strong>{{ employee.user.name }}</strong>
+            <p>{{ employee.user.designation }}{{ employee.user.employeeId ? ' • ' + employee.user.employeeId : '' }}</p>
+          </div>
+          <div class="performer-score">
+            <strong>{{ employee.productivityPercent }}%</strong>
+            <small>{{ (employee.totalTrackedSeconds / 3600).toFixed(1) }}h tracked</small>
+          </div>
+        </article>
+      </div>
+    </article>
+  </section>
+</ng-container>

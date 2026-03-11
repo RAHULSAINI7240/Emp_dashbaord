@@ -1,0 +1,137 @@
+<div *ngIf="loading"><app-skeleton [rows]="8"></app-skeleton></div>
+<div *ngIf="!loading && !allDays.length"><app-empty-state title="No attendance yet"></app-empty-state></div>
+
+<section *ngIf="!loading && allDays.length" class="timesheet-wrap">
+  <article class="panel-card intro-card">
+    <p class="eyebrow">Attendance Calendar</p>
+    <h2>Autovyn Cal</h2>
+    <p>Track attendance, punches and ARS requests in a cleaner monthly calendar.</p>
+  </article>
+
+  <article class="panel-card month-card">
+    <button type="button" class="nav-btn" (click)="prevMonth()" [disabled]="!canGoPrevMonth">◀</button>
+    <h3>{{ activeMonthTitleDate | date: 'MMMM y' }}</h3>
+    <button type="button" class="nav-btn" (click)="nextMonth()" [disabled]="!canGoNextMonth">▶</button>
+  </article>
+
+  <article class="panel-card calendar-card">
+    <div class="weekday-row">
+      <span *ngFor="let label of weekdayLabels">{{ label }}</span>
+    </div>
+    <div class="calendar-grid">
+      <ng-container *ngFor="let day of calendarSlots">
+        <button
+          *ngIf="day; else emptySlot"
+          class="day {{ day.status }}"
+          [class.active]="selected?.date === day.date"
+          (click)="selectDay(day)"
+        >
+          {{ day.date | date: 'd' }}
+        </button>
+        <ng-template #emptySlot><span class="empty"></span></ng-template>
+      </ng-container>
+    </div>
+  </article>
+
+  <article class="panel-card legend-card">
+    <div *ngFor="let s of statuses" class="legend-item">
+      <span class="count {{ s }}">{{ statusCount(s) }}</span>
+      <small>{{ statusLabel(s) }}</small>
+    </div>
+  </article>
+
+  <article class="panel-card holiday-poster" *ngIf="showHolidayPosterOnly()">
+    <img *ngIf="selected?.holidayImageUrl as holidayImage" [src]="holidayImage" [alt]="selectedHolidayTitle()" />
+    <div class="poster-fallback" *ngIf="!selected?.holidayImageUrl">
+      <h3>{{ selectedHolidayTitle() }}</h3>
+      <p>Holiday Leave</p>
+    </div>
+  </article>
+
+  <article class="panel-card info-card" *ngIf="!showHolidayPosterOnly()">
+    <div class="info-grid">
+      <div>
+        <p>Punch In Time</p>
+        <h4>{{ punchInLabel() || 'Not Available' }}</h4>
+      </div>
+      <div>
+        <p>Punch Out Time</p>
+        <h4>{{ punchOutLabel() || 'Not Available' }}</h4>
+      </div>
+    </div>
+  </article>
+
+  <article class="panel-card info-card" *ngIf="!showHolidayPosterOnly()">
+    <p>Working Hours</p>
+    <h4>{{ workingHoursLabel() || 'Not Available' }}</h4>
+    <small>Month Total: {{ monthTotalWorkingHoursLabel() }}</small>
+  </article>
+
+  <article class="panel-card photo-card" *ngIf="!showHolidayPosterOnly() && selectedAudit?.punchInPhoto; else noPunchPhoto">
+    <p>Punch-In Capture Photo</p>
+    <img [src]="selectedAudit?.punchInPhoto" alt="Punch in captured photo" />
+  </article>
+  <ng-template #noPunchPhoto>
+    <article class="panel-card info-card" *ngIf="!showHolidayPosterOnly()">
+      <p>Punch-In Capture Photo</p>
+      <h4>Not Available</h4>
+    </article>
+  </ng-template>
+
+  <article class="panel-card ars-card" *ngIf="selected && !showHolidayPosterOnly()">
+    <p>Date: {{ selected.date | date: 'dd-MM-yyyy' }}</p>
+    <p>Day Status: <strong>{{ statusLabel(selected.status) }}</strong></p>
+    <p *ngIf="selectedArs()">Latest ARS: <strong>{{ selectedArs()?.status }}</strong></p>
+    <button type="button" class="ars-btn" (click)="openArsPopup()" [disabled]="!canRequestArs()">
+      {{ canRequestArs() ? 'Request ARS' : 'ARS Not Available' }}
+    </button>
+  </article>
+</section>
+
+<div class="ars-overlay" *ngIf="arsPopupOpen">
+  <div class="ars-modal panel-card">
+    <div class="ars-head">
+      <h3>ARS Request</h3>
+      <button type="button" (click)="closeArsPopup()">✕</button>
+    </div>
+
+    <div class="ars-body" *ngIf="selected" [formGroup]="arsForm">
+      <p>Date: {{ selected.date | date: 'dd-MM-yyyy' }}</p>
+      <p>Day Status: {{ statusLabel(selected.status) }}</p>
+      <p>PunchIn Time: {{ punchInLabel() || 'Not Available' }}</p>
+      <p>PunchOut Time: {{ punchOutLabel() || 'Not Available' }}</p>
+
+      <label>
+        <span>Select Type</span>
+        <select formControlName="missingType">
+          <option value="MISSING_PUNCH_IN">Missing Punch In</option>
+          <option value="MISSING_PUNCH_OUT">Missing Punch Out</option>
+          <option value="BOTH">Both</option>
+        </select>
+      </label>
+
+      <div class="work-mode">
+        <span>Work Mode:</span>
+        <label><input type="radio" formControlName="workMode" value="OFFICE" /> Office</label>
+        <label><input type="radio" formControlName="workMode" value="HOME" /> Home</label>
+      </div>
+
+      <label>
+        <span>Select Reasons</span>
+        <select formControlName="reasonTag">
+          <option value="" disabled>Select Reason</option>
+          <option *ngFor="let item of arsReasonOptions" [value]="item">{{ item }}</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Remark</span>
+        <textarea rows="3" formControlName="remark" placeholder="Write remark"></textarea>
+      </label>
+
+      <button type="button" class="submit-btn" (click)="submitArs()" [disabled]="submittingArs">
+        {{ submittingArs ? 'Submitting...' : 'Submit' }}
+      </button>
+    </div>
+  </div>
+</div>

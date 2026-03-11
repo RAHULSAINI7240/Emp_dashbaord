@@ -1,0 +1,97 @@
+<section class="projects-shell">
+  <article class="panel-card hero-card">
+    <div>
+      <p class="eyebrow">{{ canManage ? 'Manager Project Desk' : 'My Delivery Space' }}</p>
+      <h1>{{ canManage ? 'Create, assign, and track team projects' : 'Projects assigned by your manager' }}</h1>
+      <p class="hero-copy">
+        {{ canManage
+          ? 'Add frontend, QA, support, or any team project. Assign employees, capture ownership, and keep project notes in one place.'
+          : 'See every active project where your manager or team lead assigned you, with modules, owners, and delivery notes.' }}
+      </p>
+    </div>
+
+    <div class="hero-stats">
+      <div>
+        <strong>{{ projects.length }}</strong>
+        <span>Total projects</span>
+      </div>
+      <div>
+        <strong>{{ activeProjectCount }}</strong>
+        <span>Active now</span>
+      </div>
+      <div>
+        <strong>{{ teamRunProjectCount }}</strong>
+        <span>Team-run</span>
+      </div>
+      <button *ngIf="canManage" type="button" class="hero-add-btn" (click)="openCreateDialog()">
+        <mat-icon>add_circle</mat-icon>
+        Create Project
+      </button>
+    </div>
+  </article>
+
+  <app-empty-state
+    *ngIf="!projects.length"
+    title="No Projects Yet"
+    [subtitle]="canManage ? 'Use Create Project to open the popup and add your first project.' : 'Your manager has not assigned any project yet.'"
+  ></app-empty-state>
+
+  <section *ngIf="projects.length" class="projects-grid">
+    <article *ngFor="let project of projects; trackBy: trackByProject" class="project-card panel-card">
+      <header class="project-head">
+        <div>
+          <span class="badge" [ngClass]="project.status.toLowerCase().replace(' ', '-')">{{ project.status }}</span>
+          <p>{{ project.client }}</p>
+        </div>
+        <button *ngIf="canManage" type="button" class="ghost-btn" (click)="editProject(project)">Edit</button>
+      </header>
+
+      <h2>{{ project.name }}</h2>
+      <p class="summary">{{ project.summary }}</p>
+
+      <div class="quick-meta">
+        <p><strong>Manager:</strong> {{ project.createdBy.name }}</p>
+        <p><strong>Category:</strong> {{ project.category }}</p>
+        <p><strong>Team:</strong> {{ project.teamName || 'Shared Team' }}</p>
+        <p><strong>Frontend:</strong> {{ project.frontendStack || '-' }}</p>
+        <p><strong>Backend:</strong> {{ project.backendStack || '-' }}</p>
+        <p><strong>Updated:</strong> {{ project.updatedAt | date: 'dd MMM yyyy' }}</p>
+      </div>
+
+      <div class="chips-row">
+        <span class="chip" *ngIf="project.qaSummary">QA: {{ project.qaSummary }}</span>
+        <span class="chip" *ngIf="project.supportSummary">Support: {{ project.supportSummary }}</span>
+        <span class="chip">{{ project.members.length }} member{{ project.members.length === 1 ? '' : 's' }}</span>
+      </div>
+
+      <button type="button" class="view-more-btn" (click)="toggleDetails(project.id)">
+        {{ isExpanded(project.id) ? 'Hide Details' : 'View Details' }}
+      </button>
+
+      <div *ngIf="isExpanded(project.id)" class="expanded">
+        <div>
+          <h3>Modules</h3>
+          <ul>
+            <li *ngFor="let module of project.modules">{{ module }}</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Assigned Team</h3>
+          <ul>
+            <li *ngFor="let member of project.members">
+              {{ member.name }} — {{ member.designation }}{{ member.employeeId ? ' (' + member.employeeId + ')' : '' }}
+            </li>
+          </ul>
+        </div>
+
+        <div *ngIf="project.highlights.length">
+          <h3>Highlights</h3>
+          <ul>
+            <li *ngFor="let highlight of project.highlights">{{ highlight }}</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+  </section>
+</section>

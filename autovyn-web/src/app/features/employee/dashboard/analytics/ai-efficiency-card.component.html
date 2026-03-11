@@ -1,0 +1,49 @@
+<article class="premium-card ai-card">
+  <header>
+    <h3><mat-icon>auto_graph</mat-icon>AI Efficiency Index</h3>
+    <p class="trend" [class.down]="!trendPositive">
+      <mat-icon>{{ trendPositive ? 'north_east' : 'south_east' }}</mat-icon>
+      {{ trendPositive ? '+' : '' }}{{ snapshot.efficiencyDelta }}% vs last week
+    </p>
+  </header>
+
+  <div class="body-grid">
+    <div class="chart-wrap">
+      <apx-chart
+        [series]="donutChartOptions.series"
+        [chart]="donutChartOptions.chart"
+        [labels]="donutChartOptions.labels"
+        [legend]="donutChartOptions.legend"
+        [responsive]="donutChartOptions.responsive"
+        [dataLabels]="donutChartOptions.dataLabels"
+        [plotOptions]="donutChartOptions.plotOptions"
+        [stroke]="donutChartOptions.stroke"
+      ></apx-chart>
+    </div>
+
+    <div class="stats">
+      <div>
+        <p>Accepted</p>
+        <strong><app-animated-number [value]="snapshot.acceptedPercent" suffix="%"></app-animated-number></strong>
+      </div>
+      <div>
+        <p>Rejected</p>
+        <strong><app-animated-number [value]="snapshot.rejectedPercent" suffix="%"></app-animated-number></strong>
+      </div>
+      <div>
+        <p>Time Saved</p>
+        <strong>
+          <app-animated-number [value]="snapshot.estimatedTimeSavedHours" [decimals]="1" suffix="h"></app-animated-number>
+        </strong>
+      </div>
+      <div>
+        <p>Productivity Boost</p>
+        <strong>
+          <app-animated-number [value]="snapshot.productivityBoostPercent" suffix="%"></app-animated-number>
+        </strong>
+      </div>
+    </div>
+  </div>
+
+  <p class="insight">{{ snapshot.insightMessage }}</p>
+</article>

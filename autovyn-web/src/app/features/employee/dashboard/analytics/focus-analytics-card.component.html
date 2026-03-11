@@ -1,0 +1,54 @@
+<article class="premium-card focus-card">
+  <header>
+    <h3><mat-icon>center_focus_strong</mat-icon>Focus Analytics</h3>
+    <p class="trend" [class.down]="!trendPositive">
+      <mat-icon>{{ trendPositive ? 'north_east' : 'south_east' }}</mat-icon>
+      {{ trendPositive ? '+' : '' }}{{ snapshot.trendDelta }}% weekly trend
+    </p>
+  </header>
+
+  <div class="focus-grid">
+    <div class="focus-score">
+      <div class="ring" [style.background]="'conic-gradient(#5a5af7 ' + snapshot.focusScore + '%, #e7ebff 0)'">
+        <div class="core">
+          <app-animated-number [value]="snapshot.focusScore" suffix=""></app-animated-number>
+          <small>/100</small>
+        </div>
+      </div>
+      <p>Focus Score</p>
+    </div>
+
+    <div class="meta">
+      <div>
+        <span>Longest focus streak</span>
+        <strong>
+          <app-animated-number
+            [value]="snapshot.longestContinuousSessionMinutes / 60"
+            [decimals]="1"
+            suffix="h"
+          ></app-animated-number>
+        </strong>
+      </div>
+      <div>
+        <span>Context switches</span>
+        <strong><app-animated-number [value]="snapshot.contextSwitches"></app-animated-number></strong>
+      </div>
+      <div>
+        <span>Distraction</span>
+        <strong><app-animated-number [value]="snapshot.distractionPercent" suffix="%"></app-animated-number></strong>
+      </div>
+    </div>
+  </div>
+
+  <apx-chart
+    [series]="chartOptions.series"
+    [chart]="chartOptions.chart"
+    [xaxis]="chartOptions.xaxis"
+    [stroke]="chartOptions.stroke"
+    [dataLabels]="chartOptions.dataLabels"
+    [markers]="chartOptions.markers"
+    [tooltip]="chartOptions.tooltip"
+    [fill]="chartOptions.fill"
+    [grid]="chartOptions.grid"
+  ></apx-chart>
+</article>

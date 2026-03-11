@@ -1,0 +1,113 @@
+<section class="ars-shell">
+  <article class="panel-card ars-hero">
+    <div>
+      <p class="eyebrow">Attendance Regularization</p>
+      <h2>Raise an ARS request with proper context</h2>
+      <p class="hero-copy">
+        Use ARS for missing punch corrections, explain the issue clearly, and let the system route the request
+        through the configured approval path.
+      </p>
+    </div>
+
+    <div class="hero-pill">
+      <span>Routing</span>
+      <strong>Auto-assigned approver</strong>
+      <small>manager or configured admin based on ARS policy</small>
+    </div>
+  </article>
+
+  <section class="ars-board">
+    <form class="panel-card ars-form" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">Request Details</p>
+          <h3>Describe the attendance issue</h3>
+          <span>Pick the date, mark what is missing, and write a clear explanation.</span>
+        </div>
+        <div class="status-chip">{{ missingTypeLabel }}</div>
+      </div>
+
+      <div class="option-grid">
+        <button
+          mat-stroked-button
+          type="button"
+          class="option-card"
+          *ngFor="let option of missingTypeCards"
+          [class.option-card--active]="form.getRawValue().missingType === option.value"
+          (click)="form.patchValue({ missingType: option.value })"
+        >
+          <strong>{{ option.title }}</strong>
+          <span>{{ option.copy }}</span>
+        </button>
+      </div>
+
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Request Date</mat-label>
+          <input matInput type="date" formControlName="date" [max]="todayKey" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Missing Type</mat-label>
+          <mat-select formControlName="missingType">
+            <mat-option value="MISSING_PUNCH_IN">Missing Punch In</mat-option>
+            <mat-option value="MISSING_PUNCH_OUT">Missing Punch Out</mat-option>
+            <mat-option value="BOTH">Both</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-span">
+          <mat-label>Reason</mat-label>
+          <textarea
+            matInput
+            rows="5"
+            formControlName="reason"
+            placeholder="Describe what happened, where it happened, and any context the approver should know"
+          ></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="actions">
+        <button mat-stroked-button type="button" (click)="form.reset({ date: '', missingType: 'MISSING_PUNCH_IN', reason: '', approverId: '' })">
+          Reset
+        </button>
+        <button mat-raised-button color="primary" type="submit">Submit ARS Request</button>
+      </div>
+    </form>
+
+    <aside class="sidebar">
+      <article class="panel-card side-card snapshot-card">
+        <p class="section-kicker">Live Summary</p>
+        <h3>Request Snapshot</h3>
+
+        <div class="snapshot-grid">
+          <div>
+            <span>Date</span>
+            <strong>{{ requestDateLabel }}</strong>
+          </div>
+          <div>
+            <span>Issue Type</span>
+            <strong>{{ missingTypeLabel }}</strong>
+          </div>
+          <div>
+            <span>Reason Length</span>
+            <strong>{{ reasonLength }} chars</strong>
+          </div>
+          <div>
+            <span>Routing</span>
+            <strong>Auto</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel-card side-card notes-card">
+        <p class="section-kicker">Guidelines</p>
+        <h3>Before you submit</h3>
+
+        <ul class="notes-list">
+          <li *ngFor="let tip of requestTips">{{ tip }}</li>
+        </ul>
+      </article>
+    </aside>
+  </section>
+</section>

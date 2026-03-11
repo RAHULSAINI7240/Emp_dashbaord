@@ -1,0 +1,13 @@
+<div class="layout">
+  <div class="desktop-nav">
+    <app-sidebar [items]="navItems"></app-sidebar>
+  </div>
+  <main class="content-wrap">
+    <app-header [title]="headerTitle"></app-header>
+    <section class="view-area">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>
+<app-bottom-nav></app-bottom-nav>
+<app-toast></app-toast>

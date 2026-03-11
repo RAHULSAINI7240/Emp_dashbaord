@@ -1,0 +1,53 @@
+.premium-card {
+  border-radius: 20px;
+  border: 1px solid rgba(121, 130, 255, 0.28);
+  background: linear-gradient(142deg, rgba(255, 255, 255, 0.8), rgba(239, 242, 255, 0.86));
+  box-shadow: 0 16px 28px rgba(68, 73, 143, 0.12);
+  padding: 1rem;
+}
+
+h3 {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.pace {
+  margin: 0.6rem 0;
+  border-radius: 10px;
+  background: rgba(89, 100, 255, 0.13);
+  padding: 0.6rem;
+  font-weight: 600;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+
+  div {
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.64);
+    border: 1px solid rgba(124, 136, 200, 0.22);
+    padding: 0.6rem;
+  }
+
+  span {
+    color: var(--muted);
+    font-size: 0.78rem;
+    display: block;
+  }
+
+  strong {
+    margin-top: 0.3rem;
+    display: block;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 920px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

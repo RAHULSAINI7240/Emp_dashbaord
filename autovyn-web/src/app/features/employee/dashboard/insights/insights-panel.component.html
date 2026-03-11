@@ -1,0 +1,14 @@
+<article class="premium-card insights-card">
+  <header>
+    <h3><mat-icon>lightbulb</mat-icon>AI Insights</h3>
+  </header>
+
+  <app-skeleton *ngIf="loading" [rows]="3"></app-skeleton>
+
+  <div class="insight-grid" *ngIf="!loading">
+    <article class="insight" *ngFor="let item of insights" [class.positive]="item.tone === 'positive'" [class.caution]="item.tone === 'caution'">
+      <p class="title">{{ item.title }}</p>
+      <p>{{ item.message }}</p>
+    </article>
+  </div>
+</article>

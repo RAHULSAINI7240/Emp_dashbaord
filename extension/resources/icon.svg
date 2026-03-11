@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Autovyn icon">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#07111f"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fb7185"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="url(#bg)"/>
+  <path d="M64 180L108 76h22l44 104h-24l-9-23H96l-9 23H64zm40-42h29l-14-36-15 36z" fill="#e2e8f0"/>
+  <path d="M168 78h24v102h-24z" fill="url(#accent)"/>
+  <circle cx="180" cy="60" r="16" fill="#f8fafc"/>
+</svg>

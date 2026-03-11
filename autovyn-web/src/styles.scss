@@ -1,0 +1,93 @@
+@use '@angular/material' as mat;
+@use './styles/variables';
+@use './styles/mixins';
+@use './styles/components';
+@use './styles/utilities';
+
+html {
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$blue-palette,
+        tertiary: mat.$cyan-palette
+      ),
+      typography: Roboto,
+      density: 0
+    )
+  );
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  color: var(--text);
+  background:
+    linear-gradient(180deg, rgba(7, 10, 98, 0.04) 0, rgba(7, 10, 98, 0) 190px),
+    var(--bg);
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-top: 0;
+}
+
+a {
+  color: inherit;
+}
+
+.mat-mdc-dialog-surface {
+  border-radius: 18px !important;
+}
+
+.sheet-dialog-panel .mat-mdc-dialog-surface {
+  animation: sheetIn 0.2s ease;
+}
+
+.project-editor-dialog-panel .mat-mdc-dialog-surface {
+  border-radius: 26px !important;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28) !important;
+}
+
+.project-editor-dialog-panel .mat-mdc-dialog-content {
+  max-height: min(72vh, 780px);
+}
+
+.project-editor-dialog-panel .mat-mdc-dialog-actions {
+  border-top: 1px solid #e2e8f0;
+}
+
+@keyframes sheetIn {
+  from {
+    transform: translateY(22px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 720px) {
+  .project-editor-dialog-panel .mat-mdc-dialog-container {
+    padding: 0 !important;
+  }
+
+  .project-editor-dialog-panel .mat-mdc-dialog-surface {
+    border-radius: 18px !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-height: 100vh;
+  }
+
+  .project-editor-dialog-panel .mat-mdc-dialog-content {
+    max-height: none;
+  }
+}

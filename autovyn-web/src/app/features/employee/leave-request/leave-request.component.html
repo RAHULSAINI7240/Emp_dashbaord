@@ -1,0 +1,177 @@
+<section class="request-shell">
+  <article class="panel-card request-hero">
+    <div>
+      <p class="eyebrow">Leave Desk</p>
+      <h2>Create a clean leave request</h2>
+      <p class="hero-copy">
+        Build the request once, review the summary live, and submit it to the correct approver with the right
+        duration and dates.
+      </p>
+    </div>
+
+    <div class="hero-stack">
+      <div class="hero-pill" *ngIf="defaultApproverLabel">
+        <span>Default Approver</span>
+        <strong>{{ defaultApproverLabel }}</strong>
+      </div>
+      <div class="hero-pill">
+        <span>Selected Leave</span>
+        <strong>{{ formatUnits(selectedUnits) }} day(s)</strong>
+      </div>
+    </div>
+  </article>
+
+  <section class="request-board">
+    <form class="panel-card request-form" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">Request Details</p>
+          <h3>Plan the request</h3>
+          <span>Choose type, duration, approver, reason, and leave dates.</span>
+        </div>
+        <div class="status-chip">{{ selectedDates.length }} date{{ selectedDates.length === 1 ? '' : 's' }} selected</div>
+      </div>
+
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Leave Type</mat-label>
+          <mat-select formControlName="type">
+            <mat-option value="CASUAL">Casual</mat-option>
+            <mat-option value="SICK">Sick</mat-option>
+            <mat-option value="SPECIAL">Special</mat-option>
+            <mat-option value="EMERGENCY">Emergency</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Leave Duration</mat-label>
+          <mat-select formControlName="duration">
+            <mat-option value="FULL_DAY">Full Day</mat-option>
+            <mat-option value="HALF_DAY">Half Day</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" *ngIf="isHalfDay">
+          <mat-label>Half Day Session</mat-label>
+          <mat-select formControlName="halfDaySession">
+            <mat-option value="FIRST_HALF">First Half</mat-option>
+            <mat-option value="SECOND_HALF">Second Half</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Approver</mat-label>
+          <mat-select formControlName="approverId">
+            <mat-option *ngFor="let approver of approvers" [value]="approver.id">
+              {{ approver.name }}{{ approver.designation ? ' - ' + approver.designation : '' }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-span">
+          <mat-label>Reason</mat-label>
+          <textarea
+            matInput
+            rows="4"
+            formControlName="reason"
+            placeholder="Add a clear business or personal reason for the leave request"
+          ></textarea>
+        </mat-form-field>
+
+        <div class="calendar-panel full-span">
+          <div class="calendar-head">
+            <div>
+              <p class="section-kicker">Date Selection</p>
+              <h3>Pick future leave dates</h3>
+              <span>Use the picker to add one or more valid dates.</span>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Pick Date</mat-label>
+              <input
+                matInput
+                [matDatepicker]="picker"
+                [min]="minDate"
+                [matDatepickerFilter]="futureDateFilter"
+                [value]="selectedCalendarDate"
+                (dateChange)="onDatePicked($event.value)"
+                readonly
+              />
+              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <p class="team-hint" *ngIf="teamHint">{{ teamHint }}</p>
+
+          <div class="selected-dates" *ngIf="selectedDates.length">
+            <div class="selected-head">
+              <p class="selected-title">Selected Dates</p>
+              <button mat-stroked-button type="button" class="clear-btn" (click)="clearDates()">Clear all</button>
+            </div>
+
+            <div class="selected-chips">
+              <button mat-stroked-button type="button" *ngFor="let date of selectedDates" (click)="removeDate(date)">
+                {{ formatDate(date) }} ×
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button mat-stroked-button type="button" (click)="clearDates()">Reset Dates</button>
+        <button mat-raised-button color="primary" type="submit">Submit Leave Request</button>
+      </div>
+    </form>
+
+    <aside class="sidebar">
+      <article class="panel-card side-card snapshot-card">
+        <p class="section-kicker">Live Summary</p>
+        <h3>Request Snapshot</h3>
+
+        <div class="snapshot-grid">
+          <div>
+            <span>Type</span>
+            <strong>{{ selectedTypeLabel }}</strong>
+          </div>
+          <div>
+            <span>Duration</span>
+            <strong>{{ selectedDurationLabel }}</strong>
+          </div>
+          <div>
+            <span>Approver</span>
+            <strong>{{ selectedApproverName }}</strong>
+          </div>
+          <div>
+            <span>Total Units</span>
+            <strong>{{ formatUnits(selectedUnits) }} day(s)</strong>
+          </div>
+        </div>
+
+        <div class="preview-stack" *ngIf="selectedDates.length; else noLeaveDates">
+          <p class="preview-title">Date Preview</p>
+          <div class="preview-chip">{{ formatDate(selectedDates[0]) }}</div>
+          <div class="preview-chip" *ngIf="selectedDates.length > 1">{{ formatDate(selectedDates[1]) }}</div>
+          <div class="preview-chip" *ngIf="selectedDates.length > 2">{{ formatDate(selectedDates[2]) }}</div>
+          <div class="preview-chip preview-chip--muted" *ngIf="selectedDates.length > 3">
+            +{{ selectedDates.length - 3 }} more
+          </div>
+        </div>
+      </article>
+
+      <article class="panel-card side-card notes-card">
+        <p class="section-kicker">Guidelines</p>
+        <h3>Before you submit</h3>
+
+        <ul class="notes-list">
+          <li *ngFor="let tip of requestTips">{{ tip }}</li>
+        </ul>
+      </article>
+    </aside>
+  </section>
+</section>
+
+<ng-template #noLeaveDates>
+  <div class="empty-preview">No dates added yet. Use the calendar to build the request.</div>
+</ng-template>

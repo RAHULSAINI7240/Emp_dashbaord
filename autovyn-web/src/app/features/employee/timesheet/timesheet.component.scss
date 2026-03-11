@@ -1,0 +1,417 @@
+.timesheet-wrap {
+  display: grid;
+  gap: 0.9rem;
+  width: 100%;
+}
+
+.intro-card {
+  background:
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.18), transparent 28%),
+    linear-gradient(135deg, #f7fbff 0%, #eef5ff 60%, #edf9f3 100%);
+  border: 1px solid #d7e3ef;
+
+  .eyebrow {
+    margin: 0 0 0.3rem;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #45617e;
+  }
+
+  h2 {
+    margin: 0;
+    color: #14213a;
+    font-size: 1.9rem;
+  }
+
+  p:last-child {
+    margin: 0.45rem 0 0;
+    color: #4c607a;
+  }
+}
+
+.month-card {
+  display: grid;
+  grid-template-columns: 46px 1fr 46px;
+  align-items: center;
+  text-align: center;
+  background: #f2f3f7;
+
+  h3 {
+    margin: 0;
+    font-size: 1.9rem;
+    font-weight: 600;
+    color: #111;
+  }
+}
+
+.nav-btn {
+  border: 0;
+  border-radius: 10px;
+  background: #dbe3ff;
+  color: #0a1785;
+  height: 40px;
+  font-size: 1rem;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.calendar-card {
+  background: #f2f3f7;
+}
+
+.weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  text-align: center;
+  margin-bottom: 0.4rem;
+  color: #343b48;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.day {
+  border: 0;
+  border-radius: 10px;
+  min-height: 38px;
+  width: 100%;
+  color: #fff;
+  background: #8ea1ac;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+
+  &.active {
+    box-shadow: inset 0 0 0 2px #fff, 0 0 0 2px #09117f;
+  }
+}
+
+.empty {
+  min-height: 38px;
+}
+
+.day.PRESENT {
+  background: #21a912;
+}
+
+.day.LEAVE {
+  background: #ca13c6;
+}
+
+.day.ABSENT,
+.day.INVALID {
+  background: #d32626;
+}
+
+.day.HALF_DAY {
+  background: #6c3cc6;
+}
+
+.day.LATE,
+.day.HOLIDAY {
+  background: #efad68;
+}
+
+.day.WEEKEND {
+  background: #8ea1ad;
+}
+
+.day.OVERTIME {
+  background: #0f75c2;
+}
+
+.day.UPCOMING {
+  background: #ffffff;
+  color: #5f6f85;
+  border: 1px solid #d8e1ec;
+}
+
+.count.PRESENT {
+  background: #21a912;
+}
+
+.count.LEAVE {
+  background: #ca13c6;
+}
+
+.count.ABSENT,
+.count.INVALID {
+  background: #d32626;
+}
+
+.count.HALF_DAY {
+  background: #6c3cc6;
+}
+
+.count.LATE,
+.count.HOLIDAY {
+  background: #efad68;
+}
+
+.count.WEEKEND {
+  background: #8ea1ad;
+}
+
+.count.OVERTIME {
+  background: #0f75c2;
+}
+
+.count.UPCOMING {
+  background: #ffffff;
+  color: #5f6f85;
+  border: 1px solid #d8e1ec;
+}
+
+.legend-card {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 0.3rem;
+  background: #f2f3f7;
+}
+
+.legend-item {
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+}
+
+.count {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.legend-item small {
+  font-size: 0.62rem;
+  color: #333;
+  line-height: 1;
+}
+
+.info-card {
+  background: #f2f3f7;
+  text-align: center;
+
+  p {
+    margin: 0 0 0.4rem;
+    color: #555;
+  }
+
+  h4 {
+    margin: 0;
+    font-size: 1.35rem;
+    color: #1b1f2b;
+  }
+
+  small {
+    display: block;
+    margin-top: 0.35rem;
+    color: #687388;
+  }
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+
+.ars-card {
+  background: #f2f3f7;
+  text-align: center;
+
+  p {
+    margin: 0.25rem 0;
+  }
+}
+
+.photo-card {
+  background: #f2f3f7;
+  text-align: center;
+
+  p {
+    margin: 0 0 0.45rem;
+  }
+
+  img {
+    width: 100%;
+    max-width: 200px;
+    max-height: 240px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #d6ddea;
+    margin: 0 auto;
+    display: block;
+  }
+}
+
+.holiday-poster {
+  background: #f2f3f7;
+  text-align: center;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    max-height: 260px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #d6ddea;
+  }
+}
+
+.poster-fallback {
+  border-radius: 10px;
+  border: 1px solid #d6ddea;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #ffe8b5 0%, #ffd9e9 100%);
+
+  h3 {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #2c2f44;
+  }
+
+  p {
+    margin: 0.35rem 0 0;
+    color: #4a4f6a;
+    font-weight: 600;
+  }
+}
+
+.ars-btn {
+  margin-top: 0.6rem;
+  border: 0;
+  border-radius: 10px;
+  background: #050a76;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.ars-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 20;
+  padding: 1rem;
+}
+
+.ars-modal {
+  width: min(560px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 16px;
+}
+
+.ars-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #050a76;
+  color: #fff;
+  margin: -1rem -1rem 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 12px 12px 0 0;
+
+  h3 {
+    margin: 0;
+    font-size: 1.7rem;
+  }
+
+  button {
+    border: 0;
+    background: transparent;
+    color: #fff;
+    font-size: 1.8rem;
+    cursor: pointer;
+  }
+}
+
+.ars-body {
+  display: grid;
+  gap: 0.75rem;
+
+  p {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+
+  label {
+    display: grid;
+    gap: 0.35rem;
+    text-align: left;
+  }
+
+  select,
+  textarea {
+    width: 100%;
+    border: 1px solid #ced3de;
+    border-radius: 10px;
+    font: inherit;
+    padding: 0.65rem 0.75rem;
+    background: #fff;
+  }
+}
+
+.work-mode {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.submit-btn {
+  border: 0;
+  border-radius: 10px;
+  background: #050a76;
+  color: #fff;
+  padding: 0.7rem 1rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@media (max-width: 860px) {
+  .month-card h3 {
+    font-size: 1.55rem;
+  }
+
+  .legend-card {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}

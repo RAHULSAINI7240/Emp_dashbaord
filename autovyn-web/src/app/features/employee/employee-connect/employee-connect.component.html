@@ -1,0 +1,44 @@
+<section class="panel-card">
+  <div class="filters" [formGroup]="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>Search</mat-label>
+      <input matInput formControlName="search" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Select City</mat-label>
+      <mat-select formControlName="city">
+        <mat-option value="">All</mat-option>
+        <mat-option *ngFor="let city of (cityOptions$ | async)" [value]="city">{{ city }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Select Work Mode</mat-label>
+      <mat-select formControlName="workMode">
+        <mat-option value="">All</mat-option>
+        <mat-option value="WFO">WFO</mat-option>
+        <mat-option value="WFH">WFH</mat-option>
+        <mat-option value="HYBRID">HYBRID</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="list">
+    <article *ngFor="let u of (filtered$ | async)" class="row">
+      <div class="left">
+        <div class="avatar">{{ u.name.charAt(0) }}</div>
+        <div class="identity">
+          <h4>{{ u.name }}</h4>
+          <p class="meta">{{ u.designation }}</p>
+          <p class="contact">{{ u.mobile || '-' }} | {{ u.email || '-' }}</p>
+        </div>
+      </div>
+      <div class="right">
+        <span class="chip">{{ u.workMode }}</span>
+        <div class="actions">
+          <button type="button" class="action-btn call-btn" [disabled]="!u.mobile" (click)="callUser(u)">Call</button>
+          <button type="button" class="action-btn email-btn" [disabled]="!u.email" (click)="emailUser(u)">Email</button>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>

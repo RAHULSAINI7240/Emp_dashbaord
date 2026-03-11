@@ -1,0 +1,124 @@
+<section class="leave-shell">
+  <article class="panel-card overview-card">
+    <div class="overview-copy">
+      <p class="eyebrow">Leave Overview</p>
+      <h2>Overall leave position with live balance tracking</h2>
+      <p>
+        This view combines approved and pending requests against the latest policy allowance so your overall leave
+        status stays current, including negative balance when usage crosses the limit.
+      </p>
+    </div>
+
+    <div class="overview-main">
+      <div class="donut-column">
+        <div class="donut-shell" [class.donut-shell--negative]="overview.totalRemaining < 0">
+          <div class="donut-chart" [style.background]="donutBackground">
+            <div class="donut-core">
+              <span>{{ overview.totalRemaining < 0 ? 'Overdrawn' : 'Available' }}</span>
+              <strong>{{
+                formatDays(overview.totalRemaining < 0 ? overview.totalOverdrawn : overview.totalRemaining)
+              }}</strong>
+              <small>{{
+                overview.totalRemaining < 0
+                  ? 'days beyond policy allowance'
+                  : 'days left under current policy'
+              }}</small>
+            </div>
+          </div>
+        </div>
+
+        <p class="donut-caption">
+          {{ formatDays(overview.totalTaken) }}/{{ formatDays(overview.totalAllowance) }} committed across all leave
+          categories.
+        </p>
+      </div>
+
+      <div class="overview-panel">
+        <div class="metric-grid">
+          <article class="metric-card">
+            <span>Total Allowance</span>
+            <strong>{{ formatDays(overview.totalAllowance) }}</strong>
+            <small>configured from active policy</small>
+          </article>
+
+          <article class="metric-card">
+            <span>Approved</span>
+            <strong>{{ formatDays(overview.approvedTaken) }}</strong>
+            <small>already confirmed</small>
+          </article>
+
+          <article class="metric-card">
+            <span>Pending</span>
+            <strong>{{ formatDays(overview.pendingTaken) }}</strong>
+            <small>waiting for approval</small>
+          </article>
+
+          <article class="metric-card" [class.metric-card--negative]="overview.totalRemaining < 0">
+            <span>Net Balance</span>
+            <strong>{{ formatDays(overview.totalRemaining) }}</strong>
+            <small>{{ overview.totalRemaining < 0 ? 'negative balance visible' : 'healthy leave balance' }}</small>
+          </article>
+        </div>
+
+        <div class="legend-list">
+          <div class="legend-row" *ngFor="let item of summaryRows; trackBy: trackByKey">
+            <span class="legend-swatch" [style.background]="item.color"></span>
+            <div class="legend-copy">
+              <strong>{{ item.label }}</strong>
+              <small>{{ formatDays(item.taken) }} used of {{ formatDays(item.allowed) }}</small>
+            </div>
+            <span class="legend-balance" [class.legend-balance--negative]="item.remaining < 0">
+              {{ formatDays(item.remaining) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <section class="type-grid">
+    <article class="panel-card type-card" *ngFor="let item of summaryRows; trackBy: trackByKey">
+      <div class="type-head">
+        <div>
+          <p>{{ item.label }}</p>
+          <h3>{{ formatDays(item.taken) }}</h3>
+        </div>
+        <span class="status-pill" [class.status-pill--negative]="item.remaining < 0">
+          {{ item.remaining < 0 ? 'Over limit' : 'In balance' }}
+        </span>
+      </div>
+
+      <div class="progress-track">
+        <div class="progress-used" [style.width.%]="item.usedPercent" [style.background]="item.color"></div>
+        <div class="progress-overdraw" [style.width.%]="item.overdrawPercent"></div>
+      </div>
+
+      <div class="stats-grid">
+        <div>
+          <span>Allowance</span>
+          <strong>{{ formatDays(item.allowed) }}</strong>
+        </div>
+        <div>
+          <span>Approved</span>
+          <strong>{{ formatDays(item.approved) }}</strong>
+        </div>
+        <div>
+          <span>Pending</span>
+          <strong>{{ formatDays(item.pending) }}</strong>
+        </div>
+        <div>
+          <span>Remaining</span>
+          <strong>{{ formatDays(item.remaining) }}</strong>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="action-grid">
+    <a class="panel-card action-card" *ngFor="let action of actions" [routerLink]="action.link">
+      <p class="action-eyebrow">{{ action.eyebrow }}</p>
+      <h3>{{ action.title }}</h3>
+      <span>{{ action.copy }}</span>
+    </a>
+  </section>
+</section>

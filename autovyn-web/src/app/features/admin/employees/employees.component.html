@@ -1,0 +1,26 @@
+<div class="panel-card">
+  <div class="toolbar">
+    <mat-form-field appearance="outline">
+      <mat-icon matPrefix>search</mat-icon>
+      <mat-label>Search Employee / HR</mat-label>
+      <input matInput [formControl]="search" />
+    </mat-form-field>
+  </div>
+
+  <div class="list">
+    <article *ngFor="let u of (filtered$ | async)" class="row">
+      <div>
+        <strong>{{ u.name }}</strong>
+        <p><mat-icon>badge</mat-icon>{{ u.designation }} - <mat-icon>location_on</mat-icon>{{ u.city }}</p>
+        <p>
+          <mat-icon>verified_user</mat-icon>{{ u.roles.join(', ') }}
+          <span *ngIf="u.email"> - {{ u.email }}</span>
+        </p>
+      </div>
+      <a class="view-btn" [routerLink]="['/admin/employees', u.id]">
+        <mat-icon>dashboard</mat-icon>
+        Open Dashboard
+      </a>
+    </article>
+  </div>
+</div>

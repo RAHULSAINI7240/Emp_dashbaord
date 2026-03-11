@@ -1,0 +1,65 @@
+<div class="login-page">
+  <div class="split-shell">
+    <section class="hero-panel">
+      <div class="hero-blob"></div>
+      <div class="brand-lockup">
+        <div class="logo-wrap">
+          <img class="brand-logo" src="/autovyn-logo.png" alt="Autovyn logo" />
+        </div>
+        <div class="brand-words">
+          <h2>AUTOVYN</h2>
+          <p>Workforce Intelligence Platform</p>
+        </div>
+      </div>
+      <div class="hero-art">
+        <span class="hero-chip" *ngFor="let item of featurePills">{{ item }}</span>
+      </div>
+      <p class="hero-copy">Workforce automation designed for speed, trust, and accurate attendance intelligence.</p>
+    </section>
+
+    <section class="auth-panel glass-card">
+      <div class="avatar-badge">A</div>
+      <h1>Workspace</h1>
+      <p class="subline">Secure login for admin, HR, managers, and employees.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
+        <mat-form-field appearance="outline" class="line-field">
+          <mat-label>Login Id</mat-label>
+          <mat-icon matPrefix>badge</mat-icon>
+          <input matInput formControlName="userId" placeholder="Enter VYN ID" autocomplete="username" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="line-field line-muted">
+          <mat-label>Password</mat-label>
+          <mat-icon matPrefix>lock</mat-icon>
+          <input
+            matInput
+            [type]="hidePassword ? 'password' : 'text'"
+            formControlName="password"
+            placeholder="Enter password"
+            autocomplete="current-password"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            aria-label="Toggle password visibility"
+            (click)="hidePassword = !hidePassword"
+          >
+            <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <div class="login-note">
+          <mat-icon>verified_user</mat-icon>
+          <span>Your access opens the correct dashboard automatically based on role.</span>
+        </div>
+
+        <button class="cta login-cta" type="submit" [disabled]="submitting">
+          {{ submitting ? 'SIGNING IN...' : 'LOGIN' }}
+        </button>
+      </form>
+    </section>
+  </div>
+</div>
+<app-toast></app-toast>

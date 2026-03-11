@@ -1,0 +1,33 @@
+<article class="premium-card gamification-card">
+  <header>
+    <h3><mat-icon>emoji_events</mat-icon>Gamification & Leaderboard</h3>
+  </header>
+
+  <div class="badges-grid">
+    <div class="badge-item" *ngFor="let badge of badges" [class.unlocked]="badge.unlocked" [class.unlock-pop]="unlockedBadgeId === badge.id">
+      <p class="title">
+        <mat-icon>{{ badge.icon }}</mat-icon>
+        {{ badge.title }}
+      </p>
+      <small>{{ badge.description }}</small>
+      <div class="progress-track">
+        <span [style.width.%]="badge.progressPercent"></span>
+      </div>
+      <strong>{{ badge.unlocked ? 'Unlocked' : badge.progressPercent + '% complete' }}</strong>
+    </div>
+  </div>
+
+  <div class="leaderboard">
+    <h4>Live Team Ranking</h4>
+    <div class="entry" *ngFor="let item of leaderboard; let idx = index" [style.transitionDelay.ms]="idx * 25">
+      <div class="rank">
+        <span>#{{ idx + 1 }}</span>
+        <mat-icon *ngIf="idx === 0">workspace_premium</mat-icon>
+        <mat-icon *ngIf="idx === 1">military_tech</mat-icon>
+        <mat-icon *ngIf="idx === 2">star</mat-icon>
+      </div>
+      <p>{{ item.name }}</p>
+      <strong>{{ item.score }}</strong>
+    </div>
+  </div>
+</article>

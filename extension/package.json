@@ -1,0 +1,95 @@
+{
+  "name": "autovyn-treacar",
+  "displayName": "Autovyn_treacar",
+  "publisher": "autovyn",
+  "description": "Corporate VS Code activity tracking extension for Autovyn employees.",
+  "version": "0.0.1",
+  "icon": "resources/icon.png",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "files": [
+    "dist",
+    "resources",
+    "LICENSE.txt",
+    "README.md",
+    "package.json"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:autovyn.login",
+    "onCommand:autovyn.logout",
+    "onCommand:autovyn.showActivitySummary"
+  ],
+  "main": "dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "autovyn.login",
+        "title": "Autovyn: Login"
+      },
+      {
+        "command": "autovyn.logout",
+        "title": "Autovyn: Logout"
+      },
+      {
+        "command": "autovyn.showActivitySummary",
+        "title": "Autovyn: Show Activity Summary"
+      }
+    ],
+    "configuration": {
+      "title": "Autovyn",
+      "properties": {
+        "autovyn.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "Base URL for the Autovyn backend API."
+        },
+        "autovyn.idleTimeout": {
+          "type": "number",
+          "default": 60,
+          "minimum": 60,
+          "description": "Seconds of inactivity before the developer is marked idle. Recommended: 60."
+        },
+        "autovyn.summaryProvider": {
+          "type": "string",
+          "enum": [
+            "local",
+            "ollama"
+          ],
+          "default": "local",
+          "description": "Summary engine for activity reports. Use 'ollama' to generate a local AI summary without a paid API."
+        },
+        "autovyn.ollamaUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:11434/api/generate",
+          "description": "Local Ollama generate endpoint used when summaryProvider is set to 'ollama'."
+        },
+        "autovyn.ollamaModel": {
+          "type": "string",
+          "default": "llama3.2:3b",
+          "description": "Local Ollama model used for AI activity summaries."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package --allow-missing-repository --no-dependencies",
+    "publish": "vsce publish --allow-missing-repository --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@types/vscode": "^1.96.0",
+    "@vscode/vsce": "2.26.0",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {},
+  "overrides": {
+    "cheerio": "1.0.0-rc.12"
+  }
+}

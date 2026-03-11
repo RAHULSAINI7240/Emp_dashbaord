@@ -1,0 +1,42 @@
+<div class="panel-card profile-head">
+  <label class="photo-edit" [class.disabled]="isUploading" title="Update profile photo">
+    <input type="file" accept="image/*" (change)="onPhotoSelected($event)" [disabled]="isUploading" />
+    ✎
+  </label>
+
+  <div class="avatar-wrap">
+    <img *ngIf="currentUser?.profilePhotoUrl; else initialsAvatar" [src]="currentUser?.profilePhotoUrl" alt="Profile photo" class="avatar-photo" />
+    <ng-template #initialsAvatar>
+      <div class="avatar">{{ currentUser?.name?.charAt(0) }}</div>
+    </ng-template>
+  </div>
+
+  <div class="identity">
+    <h2>{{ currentUser?.name }}</h2>
+    <p class="role">{{ currentUser?.designation }}</p>
+  </div>
+</div>
+
+<div class="panel-card details">
+  <h3>Personal Details</h3>
+  <div class="row"><strong>Employee ID:</strong> <span>{{ currentUser?.employeeId || currentUser?.adminId || '-' }}</span></div>
+  <div class="row"><strong>Department:</strong> <span>{{ currentUser?.department || '-' }}</span></div>
+  <div class="row">
+    <strong>Reporting Authority:</strong>
+    <span>{{ currentUser?.managerName ? (currentUser?.managerName + (currentUser?.managerEmployeeId ? ' (' + currentUser?.managerEmployeeId + ')' : '')) : '-' }}</span>
+  </div>
+  <div class="row"><strong>Full Name:</strong> <span>{{ currentUser?.name || '-' }}</span></div>
+  <div class="row"><strong>Date Of Birth:</strong> <span>{{ currentUser?.dateOfBirth || '-' }}</span></div>
+  <div class="row"><strong>Gender:</strong> <span>{{ currentUser?.gender || '-' }}</span></div>
+  <div class="row"><strong>Mobile:</strong> <span>{{ currentUser?.mobile || '-' }}</span></div>
+  <div class="row"><strong>Email ID:</strong> <span>{{ currentUser?.email || '-' }}</span></div>
+  <div class="row"><strong>Address:</strong> <span>{{ currentUser?.address || '-' }}</span></div>
+</div>
+
+<div class="panel-card details">
+  <h3>Health Record</h3>
+  <div class="row"><strong>Blood Group:</strong> <span>{{ currentUser?.bloodGroup || 'Required' }}</span></div>
+  <div class="row"><strong>Emergency Contact:</strong> <span>{{ currentUser?.emergencyContact || '-' }}</span></div>
+</div>
+
+<p class="profile-note">Only profile photo can be updated here. All other details come from HR records.</p>

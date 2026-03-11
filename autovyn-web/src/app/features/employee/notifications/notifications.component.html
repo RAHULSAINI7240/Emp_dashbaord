@@ -1,0 +1,37 @@
+<section class="notifications-wrap">
+  <article class="panel-card header-card">
+    <div>
+      <p class="eyebrow">Notification Center</p>
+      <h2>Your Notifications</h2>
+    </div>
+    <button type="button" class="mark-btn" (click)="markAllAsRead()" *ngIf="(unreadCount$ | async) as unread" [disabled]="unread === 0">
+      Mark all as read
+    </button>
+  </article>
+
+  <article class="panel-card empty-card" *ngIf="(notifications$ | async)?.length === 0">
+    <h3>No notifications yet</h3>
+    <p>When updates are available, they will show here.</p>
+  </article>
+
+  <section class="list" *ngIf="(notifications$ | async) as notifications">
+    <article
+      class="panel-card item"
+      *ngFor="let item of notifications"
+      [ngClass]="{ unread: !item.read }"
+      (click)="markAsRead(item)"
+    >
+      <div class="icon-box">
+        <mat-icon>{{ typeIcon(item.type) }}</mat-icon>
+      </div>
+      <div class="meta">
+        <div class="top-row">
+          <h4>{{ item.title }}</h4>
+          <small>{{ item.createdAt | date: 'MMM d, y, h:mm a' }}</small>
+        </div>
+        <p>{{ item.message }}</p>
+        <a *ngIf="item.route" [routerLink]="item.route">Open</a>
+      </div>
+    </article>
+  </section>
+</section>

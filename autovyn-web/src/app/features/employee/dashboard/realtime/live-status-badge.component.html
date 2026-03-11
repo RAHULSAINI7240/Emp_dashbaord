@@ -1,0 +1,5 @@
+<button class="live-status" type="button" [matTooltip]="tooltip()" matTooltipPosition="below" aria-label="Live work status">
+  <span class="pulse" [class.active]="status() === 'ACTIVE'" [class.idle]="status() === 'IDLE'" [class.offline]="status() === 'OFFLINE'"></span>
+  <span class="label">{{ statusLabel() }}</span>
+  <span class="time">{{ sessionLabel() }}</span>
+</button>

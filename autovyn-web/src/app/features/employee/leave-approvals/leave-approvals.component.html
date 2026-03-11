@@ -1,0 +1,69 @@
+<div class="panel-card">
+  <form [formGroup]="filters" class="filters">
+    <mat-form-field appearance="outline" class="search">
+      <mat-label>Search employee or reason</mat-label>
+      <input matInput formControlName="query" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Employee</mat-label>
+      <mat-select formControlName="employeeId">
+        <mat-option value="">All</mat-option>
+        <mat-option *ngFor="let user of (users$ | async)" [value]="user.id">{{ user.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Leave Type</mat-label>
+      <mat-select formControlName="type">
+        <mat-option value="">All</mat-option>
+        <mat-option value="CASUAL">Casual</mat-option>
+        <mat-option value="SICK">Sick</mat-option>
+        <mat-option value="SPECIAL">Special</mat-option>
+        <mat-option value="EMERGENCY">Emergency</mat-option>
+        <mat-option value="HALF_DAY">Half Day</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="status">
+        <mat-option value="ALL">All</mat-option>
+        <mat-option value="PENDING">Pending</mat-option>
+        <mat-option value="APPROVED">Approved</mat-option>
+        <mat-option value="DECLINED">Declined</mat-option>
+        <mat-option value="EXPIRED">Expired</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+
+  <mat-tab-group>
+    <mat-tab label="Pending">
+      <div class="list">
+        <article *ngFor="let r of (filtered$ | async)">
+          <div *ngIf="r.status === 'PENDING'" class="row">
+            <div>
+              <strong>{{ r.type }}</strong>
+              <p>{{ nameOf(r.employeeId) }} | {{ r.reason }} | {{ r.dates.join(', ') }}</p>
+            </div>
+            <div class="actions">
+              <button mat-button color="primary" (click)="act(r.id, 'APPROVED')">Approve</button>
+              <button mat-button color="warn" (click)="act(r.id, 'DECLINED')">Decline</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Leave Status">
+      <div class="list">
+        <article *ngFor="let r of (filtered$ | async)">
+          <div *ngIf="r.status !== 'PENDING'" class="row">
+            <div>
+              <strong>{{ r.type }}</strong>
+              <p>{{ nameOf(r.employeeId) }} | {{ r.reason }}</p>
+            </div>
+            <span class="chip {{ r.status }}">{{ r.status }}</span>
+          </div>
+        </article>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

@@ -1,0 +1,49 @@
+.bottom-nav {
+  position: fixed;
+  bottom: 0.8rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 1.1rem);
+  max-width: 680px;
+  z-index: 30;
+  display: none;
+  grid-template-columns: repeat(5, 1fr);
+  background: #05057f;
+  border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(8, 9, 55, 0.28);
+
+  a,
+  button {
+    border: 0;
+    background: transparent;
+    color: #ffffff;
+    text-decoration: none;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    width: 58px;
+    margin: 0.25rem auto;
+    border-radius: 50%;
+  }
+
+  a.active {
+    background: #fff;
+    color: #05057f;
+  }
+
+  button {
+    color: #fff;
+  }
+
+  mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 960px) {
+  .bottom-nav {
+    display: grid;
+  }
+}

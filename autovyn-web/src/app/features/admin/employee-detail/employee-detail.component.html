@@ -1,0 +1,227 @@
+<section class="detail-wrap">
+  <a class="back-link" routerLink="/admin/employees"><mat-icon>arrow_back</mat-icon>Back to Employees</a>
+
+  <article class="panel-card head-card" *ngIf="employee; else notFound">
+    <h2><mat-icon>person</mat-icon>{{ employee.name }}</h2>
+    <p>{{ employee.designation }} | {{ employee.city }} | {{ employee.workMode }} | {{ monthLabel }}</p>
+    <a class="dashboard-link" [routerLink]="['/admin/employees', employee.id]">
+      <mat-icon>dashboard</mat-icon>Open Same Employee Dashboard
+    </a>
+  </article>
+
+  <ng-template #notFound>
+    <article class="panel-card">
+      <h3>User not found</h3>
+      <p>Selected employee does not exist.</p>
+    </article>
+  </ng-template>
+
+  <section class="summary-grid" *ngIf="employee">
+    <article class="panel-card mini">
+      <span>Tracked Days</span>
+      <strong>{{ trackedDays }}</strong>
+    </article>
+    <article class="panel-card mini">
+      <span>Average Work</span>
+      <strong>{{ averageWorkLabel }}</strong>
+    </article>
+    <article class="panel-card mini">
+      <span>Late Days</span>
+      <strong>{{ lateDays }}</strong>
+    </article>
+    <article class="panel-card mini">
+      <span>Leave Days</span>
+      <strong>{{ monthlyLeaveDays }}</strong>
+    </article>
+    <article class="panel-card mini">
+      <span>Off Days</span>
+      <strong>{{ monthlyOffDays }}</strong>
+    </article>
+    <article class="panel-card mini">
+      <span>Compliance</span>
+      <strong>{{ complianceRate }}%</strong>
+    </article>
+    <article class="panel-card mini">
+      <span>Target Progress</span>
+      <strong>{{ monthTargetProgress }}%</strong>
+    </article>
+  </section>
+
+  <section class="graph-grid" *ngIf="employee">
+    <article class="panel-card chart-card">
+      <h3><mat-icon>timeline</mat-icon>Last 7 Days Work Trend</h3>
+      <div class="week-chart">
+        <div class="week-col" *ngFor="let point of weeklyTrend">
+          <div class="week-track">
+            <span class="target-line"></span>
+            <span class="week-bar" [style.height.%]="point.percent" [class.late]="point.late"></span>
+          </div>
+          <strong>{{ minutesToHHMM(point.minutes) }}</strong>
+          <small>{{ point.label }}</small>
+        </div>
+      </div>
+    </article>
+
+    <article class="panel-card chart-card">
+      <h3><mat-icon>stacked_bar_chart</mat-icon>Month Mix</h3>
+      <div class="bar-row" *ngFor="let item of attendanceMixBars">
+        <div class="bar-label"><mat-icon>{{ item.icon }}</mat-icon>{{ item.label }}</div>
+        <div class="bar-track"><span class="bar-fill" [style.width.%]="item.percent" [style.background]="item.color"></span></div>
+        <div class="bar-meta">{{ item.value }} ({{ item.percent }}%)</div>
+      </div>
+    </article>
+  </section>
+
+  <article class="panel-card timeline-card" *ngIf="employee">
+    <h3><mat-icon>show_chart</mat-icon>Daily Time Graph + Punch Photo</h3>
+
+    <div class="timeline-list" *ngIf="reportLogs.length; else noLogs">
+      <button
+        type="button"
+        class="timeline-row"
+        *ngFor="let log of reportLogs"
+        [class.active]="selectedLogDate === log.date"
+        (click)="selectLog(log)"
+      >
+        <div class="timeline-date">{{ log.date | date: 'MMM d' }}</div>
+        <div class="timeline-track">
+          <div
+            class="shift-span"
+            *ngIf="log.punchIn && log.punchOut"
+            [style.left.%]="timelineStartPercent(log)"
+            [style.width.%]="timelineWidthPercent(log)"
+          ></div>
+          <span class="marker in" *ngIf="log.punchIn" [style.left.%]="timelineStartPercent(log)"></span>
+          <span class="marker out" *ngIf="log.punchOut" [style.left.%]="timelineEndPercent(log)"></span>
+        </div>
+        <div class="timeline-stats">
+          <strong>{{ minutesToHHMM(log.workMinutes) }}</strong>
+          <small [class.late]="log.lateByMinutes > 0">{{ log.lateByMinutes > 0 ? 'Late +' + log.lateByMinutes + 'm' : 'On time' }}</small>
+        </div>
+      </button>
+    </div>
+
+    <div class="selected-box" *ngIf="selectedLog as dayLog">
+      <div class="selected-meta">
+        <p><mat-icon>calendar_today</mat-icon>{{ dayLog.date | date: 'EEEE, MMM d, y' }}</p>
+        <p><mat-icon>login</mat-icon>{{ dayLog.punchIn ? (dayLog.punchIn | date: 'hh:mm:ss a') : '--:--' }}</p>
+        <p><mat-icon>logout</mat-icon>{{ dayLog.punchOut ? (dayLog.punchOut | date: 'hh:mm:ss a') : '--:--' }}</p>
+        <p><mat-icon>pin_drop</mat-icon>{{ locationTypeLabel(dayLog.inLocation?.locationType) }}</p>
+      </div>
+      <div class="selected-photo">
+        <button
+          *ngIf="dayLog.punchInPhoto; else noPhoto"
+          type="button"
+          class="photo-trigger"
+          (click)="openImagePreview(dayLog.punchInPhoto)"
+        >
+          <img [src]="dayLog.punchInPhoto" alt="Punch-in photo" />
+          <span class="photo-overlay">
+            <mat-icon>zoom_in</mat-icon>
+            View Full Image
+          </span>
+        </button>
+        <ng-template #noPhoto>
+          <span><mat-icon>photo_camera</mat-icon>No photo for this day</span>
+        </ng-template>
+      </div>
+    </div>
+
+    <ng-template #noLogs>
+      <p class="empty"><mat-icon>history_toggle_off</mat-icon>No attendance logs captured for this employee yet.</p>
+    </ng-template>
+  </article>
+
+  <article class="panel-card calendar-card" *ngIf="employee">
+    <div class="calendar-head">
+      <h3><mat-icon>calendar_month</mat-icon>Attendance Calendar</h3>
+      <div class="month-nav">
+        <button type="button" (click)="prevCalendarMonth()" [disabled]="!canGoPrevCalendarMonth">◀</button>
+        <strong>{{ calendarMonthLabel }}</strong>
+        <button type="button" (click)="nextCalendarMonth()" [disabled]="!canGoNextCalendarMonth">▶</button>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span *ngFor="let status of calendarLegend" class="chip {{ status }}">{{ calendarStatusLabel(status) }}</span>
+    </div>
+
+    <div class="weekday-row">
+      <span *ngFor="let day of weekDays">{{ day }}</span>
+    </div>
+
+    <div class="calendar-grid">
+      <ng-container *ngFor="let day of calendarGridCells">
+        <span class="day-pad" *ngIf="!day"></span>
+        <button
+          *ngIf="day"
+          type="button"
+          class="day-cell {{ day.status }}"
+          [class.active]="selectedCalendarDate === day.date"
+          [class.today]="day.date === (now | date: 'yyyy-MM-dd')"
+          (click)="selectCalendarDay(day)"
+        >
+          <small>{{ day.day }}</small>
+          <strong>{{ calendarStatusLabel(day.status) }}</strong>
+        </button>
+      </ng-container>
+    </div>
+
+    <div class="calendar-detail" *ngIf="selectedCalendarDay as selected">
+      <article>
+        <p>Date</p>
+        <h4>{{ selected.date | date: 'EEEE, MMM d, y' }}</h4>
+      </article>
+      <article>
+        <p>Status</p>
+        <h4><span class="chip {{ selected.status }}">{{ calendarStatusLabel(selected.status) }}</span></h4>
+      </article>
+      <article>
+        <p>Punch In</p>
+        <h4>{{ selected.log?.punchIn ? (selected.log?.punchIn | date: 'hh:mm:ss a') : '--:--' }}</h4>
+      </article>
+      <article>
+        <p>Punch Out</p>
+        <h4>{{ selected.log?.punchOut ? (selected.log?.punchOut | date: 'hh:mm:ss a') : '--:--' }}</h4>
+      </article>
+      <article>
+        <p>Working Hours</p>
+        <h4>{{ selected.log ? minutesToHHMM(selected.log.workMinutes) : '--:--' }}</h4>
+      </article>
+      <article>
+        <p>Late By</p>
+        <h4>{{ selected.log?.lateByMinutes ? selected.log?.lateByMinutes + 'm' : '0m' }}</h4>
+      </article>
+      <article class="calendar-photo-card">
+        <p>Capture Photo</p>
+        <button
+          *ngIf="selected.log?.punchInPhoto; else noCalendarPhoto"
+          type="button"
+          class="photo-trigger calendar-photo-trigger"
+          (click)="openImagePreview(selected.log?.punchInPhoto!)"
+        >
+          <img [src]="selected.log?.punchInPhoto!" alt="Selected day capture photo" />
+          <span class="photo-overlay">
+            <mat-icon>zoom_in</mat-icon>
+            View Full Image
+          </span>
+        </button>
+        <ng-template #noCalendarPhoto>
+          <span class="calendar-photo-empty">
+            <mat-icon>photo_camera</mat-icon>
+            No capture photo for this day
+          </span>
+        </ng-template>
+      </article>
+    </div>
+  </article>
+</section>
+
+<div class="image-preview-backdrop" *ngIf="previewImageUrl" (click)="closeImagePreview()">
+  <div class="image-preview-dialog" (click)="$event.stopPropagation()">
+    <button type="button" class="image-preview-close" (click)="closeImagePreview()" aria-label="Close image preview">
+      <mat-icon>close</mat-icon>
+    </button>
+    <img [src]="previewImageUrl" alt="Attendance capture preview" />
+  </div>
+</div>

@@ -1,0 +1,19 @@
+<h2 mat-dialog-title>Add - Ons</h2>
+<mat-dialog-content>
+  <div class="action-grid">
+    <a
+      *ngFor="let action of actions"
+      [routerLink]="action.link"
+      (click)="dialogRef.close()"
+      class="action-card"
+    >
+      <span class="icon-wrap"><mat-icon>{{ action.icon }}</mat-icon></span>
+      {{ action.label }}
+    </a>
+  </div>
+</mat-dialog-content>
+<div class="close-wrap">
+  <button type="button" class="close-btn" (click)="dialogRef.close()">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>

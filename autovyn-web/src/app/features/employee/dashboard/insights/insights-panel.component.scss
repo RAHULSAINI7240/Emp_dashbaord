@@ -1,0 +1,65 @@
+.premium-card {
+  border-radius: 20px;
+  border: 1px solid rgba(125, 122, 255, 0.22);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(243, 247, 255, 0.84));
+  padding: 1rem;
+}
+
+header h3 {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.insight-grid {
+  margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.insight {
+  border-radius: 12px;
+  border: 1px solid rgba(130, 141, 207, 0.22);
+  background: rgba(255, 255, 255, 0.65);
+  padding: 0.65rem;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: reveal 0.4s ease forwards;
+
+  &.positive {
+    border-color: rgba(56, 190, 122, 0.35);
+    background: rgba(56, 190, 122, 0.1);
+  }
+
+  &.caution {
+    border-color: rgba(221, 146, 53, 0.38);
+    background: rgba(236, 171, 53, 0.12);
+  }
+
+  .title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  p {
+    margin: 0.28rem 0 0;
+    color: #2a3156;
+    font-size: 0.82rem;
+  }
+}
+
+@keyframes reveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 920px) {
+  .insight-grid {
+    grid-template-columns: 1fr;
+  }
+}

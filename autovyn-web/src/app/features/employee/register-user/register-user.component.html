@@ -1,0 +1,100 @@
+<section class="register-wrap">
+  <article class="panel-card form-card">
+    <h2><mat-icon>person_add</mat-icon>Register New User</h2>
+    <p>Create a new user profile directly in backend.</p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="register-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Full Name</mat-label>
+        <input matInput formControlName="name" placeholder="Enter full name" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Mobile Number</mat-label>
+        <input matInput formControlName="mobile" placeholder="10-15 digit number" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" placeholder="name@company.com" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Department</mat-label>
+        <input matInput formControlName="department" placeholder="e.g. Engineering" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Designation</mat-label>
+        <input matInput formControlName="designation" placeholder="e.g. QA Engineer" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>City</mat-label>
+        <input matInput formControlName="city" placeholder="e.g. Bengaluru" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Joining Date</mat-label>
+        <input matInput type="date" formControlName="joiningDate" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Date of Birth</mat-label>
+        <input matInput type="date" formControlName="dateOfBirth" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Gender</mat-label>
+        <mat-select formControlName="gender">
+          <mat-option value="">Select</mat-option>
+          <mat-option value="Male">Male</mat-option>
+          <mat-option value="Female">Female</mat-option>
+          <mat-option value="Other">Other</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Emergency Contact</mat-label>
+        <input matInput formControlName="emergencyContact" placeholder="Emergency mobile number" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-span">
+        <mat-label>Address</mat-label>
+        <textarea matInput rows="3" formControlName="address" placeholder="Current address"></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Role</mat-label>
+        <mat-select formControlName="role">
+          <mat-option value="EMPLOYEE">Employee</mat-option>
+          <mat-option value="HR">HR</mat-option>
+          <mat-option value="ADMIN">Admin</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Work Mode</mat-label>
+        <mat-select formControlName="workMode">
+          <mat-option value="WFO">WFO</mat-option>
+          <mat-option value="WFH">WFH</mat-option>
+          <mat-option value="HYBRID">Hybrid</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button type="submit" class="submit-btn">
+        <mat-icon>how_to_reg</mat-icon>
+        Create User
+      </button>
+    </form>
+  </article>
+
+  <article class="panel-card credentials-card" *ngIf="createdUser">
+    <h3><mat-icon>badge</mat-icon>Generated Credentials</h3>
+    <p><strong>Name:</strong> {{ createdUser.name }}</p>
+    <p><strong>Login ID:</strong> {{ createdUser.adminId || createdUser.employeeId || createdUser.id }}</p>
+    <p><strong>Joining Date:</strong> {{ createdUser.joiningDate || form.value.joiningDate }}</p>
+    <p><strong>Default Password:</strong> {{ defaultPassword }}</p>
+    <p class="hint">The password is the employee joining date. Share these credentials securely.</p>
+  </article>
+</section>

@@ -1,0 +1,28 @@
+<section class="policy-shell" *ngIf="sections.length; else emptyPolicy">
+  <article class="panel-card hero-card">
+    <p class="eyebrow">Policy Center</p>
+    <h2>Attendance, leave, and employee policy overview</h2>
+    <p class="hero-copy">This section stays dynamic with portal policy data and gives admin or employees one place to review expected working rules.</p>
+  </article>
+
+  <section class="policy-grid">
+    <article class="panel-card tile" *ngFor="let section of sections">
+      <div class="tile-head">
+        <span class="icon-wrap"><mat-icon>{{ section.icon }}</mat-icon></span>
+        <div>
+          <h3>{{ section.title }}</h3>
+          <p>{{ section.points.length }} policy points</p>
+        </div>
+      </div>
+      <ul>
+        <li *ngFor="let point of section.points">{{ point }}</li>
+      </ul>
+    </article>
+  </section>
+</section>
+
+<ng-template #emptyPolicy>
+  <section class="policy-shell">
+    <article class="panel-card tile">No policy found. Ask admin to publish policies.</article>
+  </section>
+</ng-template>

@@ -1,0 +1,50 @@
+.layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 1rem;
+  height: 100vh;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.desktop-nav {
+  min-height: 0;
+}
+
+.content-wrap {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 1rem;
+  min-height: 0;
+}
+
+.view-area {
+  min-height: 0;
+  overflow-y: auto;
+  border-radius: 20px;
+  padding-right: 0.25rem;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+    padding: 0.75rem;
+    padding-bottom: 4.2rem;
+  }
+
+  .desktop-nav {
+    display: none;
+  }
+
+  .content-wrap {
+    min-height: initial;
+  }
+
+  .view-area {
+    overflow: visible;
+    padding-right: 0;
+  }
+}

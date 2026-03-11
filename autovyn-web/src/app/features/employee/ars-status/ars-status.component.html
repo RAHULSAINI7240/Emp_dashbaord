@@ -1,0 +1,9 @@
+<div class="panel-card list">
+  <article *ngFor="let r of (requests$ | async)" class="row">
+    <div>
+      <strong>{{ r.date }}</strong>
+      <p>{{ r.reason }} ({{ r.missingType }})</p>
+    </div>
+    <span class="chip {{ r.status }}">{{ r.status }}</span>
+  </article>
+</div>

@@ -1,0 +1,10 @@
+<div class="kpi-card" [class.negative]="!isPositive">
+  <p class="label"><mat-icon>{{ icon }}</mat-icon>{{ label }}</p>
+  <strong class="value">
+    <app-animated-number [value]="value" [suffix]="suffix" [decimals]="decimals"></app-animated-number>
+  </strong>
+  <p class="trend" [class.down]="!isPositive">
+    <mat-icon>{{ isPositive ? 'trending_up' : 'trending_down' }}</mat-icon>
+    {{ isPositive ? '+' : '' }}{{ changePercent }}% vs last week
+  </p>
+</div>

@@ -1,0 +1,10 @@
+<div class="layout">
+  <app-sidebar [items]="navItems"></app-sidebar>
+  <main class="content-wrap">
+    <app-header title="Admin Console"></app-header>
+    <section class="view-area">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>
+<app-toast></app-toast>

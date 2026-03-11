@@ -1,0 +1,22 @@
+# Dependencies
+**/node_modules/
+
+# Build outputs
+**/dist/
+**/coverage/
+**/.angular/cache/
+
+# Environment files
+**/.env
+**/.env.*
+!**/.env.example
+
+# Packaged artifacts
+**/*.vsix
+**/*.deb
+
+# Logs and system files
+**/npm-debug.log*
+**/yarn-error.log*
+.DS_Store
+Thumbs.db

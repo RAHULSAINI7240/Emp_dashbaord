@@ -1,0 +1,20 @@
+<article class="premium-card prediction-card">
+  <h3><mat-icon>query_stats</mat-icon>Productivity Prediction</h3>
+  <p class="pace">{{ prediction.paceMessage }}</p>
+  <div class="grid">
+    <div>
+      <span>Expected weekly hours</span>
+      <strong>
+        <app-animated-number [value]="prediction.projectedHours" [decimals]="1" suffix="h"></app-animated-number>
+      </strong>
+    </div>
+    <div>
+      <span>Expected productivity</span>
+      <strong><app-animated-number [value]="prediction.expectedProductivityScore" suffix="/100"></app-animated-number></strong>
+    </div>
+    <div>
+      <span>Predicted rank</span>
+      <strong>#<app-animated-number [value]="prediction.predictedRank"></app-animated-number></strong>
+    </div>
+  </div>
+</article>

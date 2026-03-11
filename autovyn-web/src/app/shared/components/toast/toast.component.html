@@ -1,0 +1,3 @@
+<div *ngIf="toastService.toast$ | async as toast" class="toast" [class.success]="toast.type === 'success'" [class.error]="toast.type === 'error'">
+  {{ toast.text }}
+</div>

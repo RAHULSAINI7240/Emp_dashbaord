@@ -1,0 +1,39 @@
+<article class="premium-card heatmap-card">
+  <header>
+    <h3><mat-icon>calendar_month</mat-icon>Monthly Work Heatmap</h3>
+    <label>
+      <span>Month</span>
+      <select [value]="selectedMonth" (change)="onMonthChange($any($event.target).value)">
+        <option *ngFor="let month of months" [value]="month.key">{{ month.label }}</option>
+      </select>
+    </label>
+  </header>
+
+  <div class="legend">
+    <span>Low</span>
+    <i class="level-0"></i>
+    <i class="level-1"></i>
+    <i class="level-2"></i>
+    <i class="level-3"></i>
+    <i class="level-4"></i>
+    <span>High</span>
+  </div>
+
+  <div class="heatmap-wrap" *ngIf="weeks.length">
+    <div class="axis">
+      <span *ngFor="let day of days">{{ day }}</span>
+    </div>
+    <div class="weeks-grid">
+      <div class="week" *ngFor="let week of weeks">
+        <button
+          type="button"
+          class="cell"
+          *ngFor="let cell of week"
+          [ngClass]="[intensityClass(cell), !cell.isCurrentMonth ? 'dimmed' : '']"
+          [title]="cellTooltip(cell)"
+          aria-label="Daily workload"
+        ></button>
+      </div>
+    </div>
+  </div>
+</article>

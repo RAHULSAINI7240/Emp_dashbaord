@@ -1,0 +1,177 @@
+<section class="timesheet-shell">
+  <article class="hero-card panel-card">
+    <div class="hero-copy">
+      <p class="eyebrow">Daily Delivery Journal</p>
+      <h2>Timesheet</h2>
+      <p>
+        Log ticket, task, total working hours, delivery status and AI support used today. Your last one month of work
+        stays visible here for fast review.
+      </p>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-box">
+        <strong>{{ totalHours | number: '1.0-1' }}h</strong>
+        <span>Logged Hours</span>
+      </div>
+      <div class="stat-box">
+        <strong>{{ totalAiHours | number: '1.0-1' }}h</strong>
+        <span>AI Assisted</span>
+      </div>
+      <div class="stat-box">
+        <strong>{{ completedCount }}</strong>
+        <span>Completed Tasks</span>
+      </div>
+    </div>
+  </article>
+
+  <article class="reminder-card panel-card" [class.ok]="hasTodayEntry">
+    <mat-icon>{{ hasTodayEntry ? 'task_alt' : 'notification_important' }}</mat-icon>
+    <div>
+      <h3>{{ hasTodayEntry ? 'Today is already logged' : 'Today timesheet is pending' }}</h3>
+      <p>
+        {{
+          hasTodayEntry
+            ? 'You can still add another task entry or edit an existing one.'
+            : 'Employees should fill today ticket, task, hours, status and AI usage before day close.'
+        }}
+      </p>
+    </div>
+  </article>
+
+  <section class="content-grid">
+    <article class="entry-card panel-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow dark">Mandatory Entry</p>
+          <h3>{{ editingId ? 'Update Task Record' : 'Add Today Work' }}</h3>
+        </div>
+        <button type="button" class="ghost-btn" *ngIf="editingId" (click)="resetForm()">Cancel</button>
+      </div>
+
+      <form class="entry-form" [formGroup]="form" (ngSubmit)="save()">
+        <label>
+          <span>Date</span>
+          <input type="date" formControlName="date" />
+        </label>
+
+        <label>
+          <span>Ticket ID</span>
+          <input type="text" formControlName="ticketId" placeholder="UI-241 / AUT-1108" />
+        </label>
+
+        <label class="full-span">
+          <span>Task Title</span>
+          <input type="text" formControlName="taskTitle" placeholder="Responsive dashboard fixes" />
+        </label>
+
+        <label class="full-span">
+          <span>Work Summary</span>
+          <textarea rows="4" formControlName="taskDetails" placeholder="What you worked on, blockers, delivery note"></textarea>
+        </label>
+
+        <label>
+          <span>Total Working Hours</span>
+          <input type="number" min="0.5" max="24" step="0.5" formControlName="workHours" />
+        </label>
+
+        <label>
+          <span>Status</span>
+          <select formControlName="status">
+            <option *ngFor="let status of statusOptions" [value]="status">{{ statusLabel(status) }}</option>
+          </select>
+        </label>
+
+        <label>
+          <span>AI Tool Used</span>
+          <select formControlName="aiTool">
+            <option *ngFor="let tool of aiTools" [value]="tool">{{ tool }}</option>
+          </select>
+        </label>
+
+        <label>
+          <span>AI Usage Hours</span>
+          <input type="number" min="0" max="24" step="0.5" formControlName="aiHours" />
+        </label>
+
+        <label class="full-span">
+          <span>AI Support Summary</span>
+          <textarea rows="3" formControlName="aiUsageSummary" placeholder="Used Copilot for refactor, prompt support, test scaffolding"></textarea>
+        </label>
+
+        <button type="submit" class="primary-btn">{{ editingId ? 'Update Entry' : 'Save Entry' }}</button>
+      </form>
+    </article>
+
+    <article class="record-card panel-card">
+      <div class="section-head stacked">
+        <div>
+          <p class="eyebrow dark">Monthly Review</p>
+          <h3>{{ selectedMonthLabel }}</h3>
+        </div>
+
+        <div class="month-switcher">
+          <button
+            type="button"
+            *ngFor="let month of monthOptions"
+            class="month-chip"
+            [class.active]="selectedMonth === month"
+            (click)="setMonth(month)"
+          >
+            {{ month | date: 'MMM y' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="!selectedMonthEntries.length">
+        <mat-icon>assignment_late</mat-icon>
+        <h4>No work records for this month</h4>
+        <p>Add your first task entry to start the monthly timeline.</p>
+      </div>
+
+      <div class="record-list" *ngIf="selectedMonthEntries.length">
+        <article class="record-item" *ngFor="let entry of selectedMonthEntries">
+          <div class="record-head">
+            <div>
+              <p class="ticket">{{ entry.ticketId }}</p>
+              <h4>{{ entry.taskTitle }}</h4>
+              <p class="date">{{ entry.date | date: 'EEE, MMM d, y' }}</p>
+            </div>
+            <span class="status-chip {{ entry.status }}">{{ statusLabel(entry.status) }}</span>
+          </div>
+
+          <p class="detail">{{ entry.taskDetails }}</p>
+
+          <div class="metric-row">
+            <div class="metric-box">
+              <span>Work</span>
+              <strong>{{ entry.workHours | number: '1.0-1' }}h</strong>
+            </div>
+            <div class="metric-box">
+              <span>AI Tool</span>
+              <strong>{{ entry.aiTool }}</strong>
+            </div>
+            <div class="metric-box">
+              <span>AI Time</span>
+              <strong>{{ entry.aiHours | number: '1.0-1' }}h</strong>
+            </div>
+            <div class="metric-box">
+              <span>AI Share</span>
+              <strong>{{ aiUtilization(entry) }}%</strong>
+            </div>
+          </div>
+
+          <div class="ai-note">
+            <mat-icon>auto_awesome</mat-icon>
+            <p>{{ entry.aiUsageSummary }}</p>
+          </div>
+
+          <div class="record-actions">
+            <button type="button" class="ghost-btn small" (click)="edit(entry)">Edit</button>
+            <button type="button" class="ghost-btn small danger" (click)="remove(entry)">Delete</button>
+          </div>
+        </article>
+      </div>
+    </article>
+  </section>
+</section>

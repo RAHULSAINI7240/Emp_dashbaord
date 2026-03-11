@@ -1,0 +1,121 @@
+<div class="dialog-shell">
+  <div class="dialog-hero">
+    <div>
+      <p class="eyebrow">{{ isEditMode ? 'Update Project' : 'New Project' }}</p>
+      <h2 mat-dialog-title>{{ isEditMode ? 'Edit project details' : 'Create project for your team' }}</h2>
+      <p class="subtext">
+        Add project scope, team allocation, QA/support notes, and assigned employees in one professional dialog.
+      </p>
+    </div>
+    <button type="button" mat-dialog-close class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <form [formGroup]="form" class="project-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Project Name</mat-label>
+        <input matInput formControlName="name" placeholder="Autovyn Frontend Revamp" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Client / Business Unit</mat-label>
+        <input matInput formControlName="client" placeholder="Internal / Support / QA Ops" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Category</mat-label>
+        <mat-select formControlName="category">
+          <mat-option value="Frontend">Frontend</mat-option>
+          <mat-option value="Backend">Backend</mat-option>
+          <mat-option value="QA">QA</mat-option>
+          <mat-option value="Support">Support</mat-option>
+          <mat-option value="Full Stack">Full Stack</mat-option>
+          <mat-option value="Other">Other</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+          <mat-option value="Active">Active</mat-option>
+          <mat-option value="Planning">Planning</mat-option>
+          <mat-option value="On Hold">On Hold</mat-option>
+          <mat-option value="Completed">Completed</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Team Name</mat-label>
+        <input matInput formControlName="teamName" placeholder="Frontend Team A" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Frontend Stack</mat-label>
+        <input matInput formControlName="frontendStack" placeholder="Angular, Material, RxJS" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Backend Stack</mat-label>
+        <input matInput formControlName="backendStack" placeholder="Node, .NET, MongoDB" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>QA Details</mat-label>
+        <input matInput formControlName="qaSummary" placeholder="Smoke + regression handoff" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Support Details</mat-label>
+        <input matInput formControlName="supportSummary" placeholder="L1 support with ticket triage" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-span">
+        <mat-label>Project Summary</mat-label>
+        <textarea
+          matInput
+          rows="4"
+          formControlName="summary"
+          placeholder="Explain the project, owner expectation, and delivery scope."
+        ></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-span">
+        <mat-label>Assign Team Members</mat-label>
+        <mat-select formControlName="memberIds" multiple>
+          <mat-option *ngFor="let user of data.assignableUsers" [value]="user.id">
+            {{ user.name }} — {{ user.designation }}{{ user.employeeId ? ' (' + user.employeeId + ')' : '' }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-span">
+        <mat-label>Modules / Deliverables</mat-label>
+        <textarea
+          matInput
+          rows="4"
+          formControlName="modulesText"
+          placeholder="One line each: dashboard UI, QA test pack, support macros"
+        ></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-span">
+        <mat-label>Highlights / Notes</mat-label>
+        <textarea
+          matInput
+          rows="4"
+          formControlName="highlightsText"
+          placeholder="One line each: Friday release, staging freeze, daily sync at 5 PM"
+        ></textarea>
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="actions">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-flat-button color="primary" (click)="save()" [disabled]="isSaving">
+      {{ isSaving ? 'Saving...' : isEditMode ? 'Update Project' : 'Create Project' }}
+    </button>
+  </mat-dialog-actions>
+</div>

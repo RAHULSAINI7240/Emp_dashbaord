@@ -1,0 +1,42 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem;
+  border-radius: 18px;
+  min-height: calc(100vh - 2rem);
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  color: var(--muted);
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  &:hover,
+  &.active {
+    color: #fff;
+    background: var(--gradient-primary);
+    transform: translateX(2px);
+  }
+}
+
+.logout-link {
+  margin-top: auto;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+
+  &:hover {
+    background: linear-gradient(135deg, #e53935, #ff6f60);
+    color: #fff;
+    transform: translateX(2px);
+  }
+}

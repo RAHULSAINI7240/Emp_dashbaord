@@ -1,0 +1,29 @@
+<div class="panel-card">
+  <mat-tab-group>
+    <mat-tab label="Pending">
+      <div class="list">
+        <article *ngFor="let r of (requests$ | async)" class="row" [hidden]="r.status !== 'PENDING'">
+          <div>
+            <strong>{{ r.date }}</strong>
+            <p>{{ r.reason }}</p>
+          </div>
+          <div class="actions">
+            <button mat-button color="primary" (click)="act(r.id, 'APPROVED')">Approve</button>
+            <button mat-button color="warn" (click)="act(r.id, 'DECLINED')">Decline</button>
+          </div>
+        </article>
+      </div>
+    </mat-tab>
+    <mat-tab label="ARS Status">
+      <div class="list">
+        <article *ngFor="let r of (requests$ | async)" class="row" [hidden]="r.status === 'PENDING'">
+          <div>
+            <strong>{{ r.date }}</strong>
+            <p>{{ r.reason }}</p>
+          </div>
+          <span class="chip {{ r.status }}">{{ r.status }}</span>
+        </article>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

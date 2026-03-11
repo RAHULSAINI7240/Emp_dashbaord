@@ -1,0 +1,342 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EMPLOYEE
+  HR
+}
+
+enum WorkMode {
+  WFO
+  WFH
+  HYBRID
+}
+
+enum Permission {
+  APPROVE_LEAVE
+  APPROVE_ARS
+  VIEW_TEAM
+  MANAGE_EMPLOYEES
+  CREATE_USER
+  MANAGER
+  TEAM_LEAD
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LEAVE
+  ABSENT
+  HALF_DAY
+  LATE
+  HOLIDAY
+  WEEKEND
+  OVERTIME
+  INVALID
+}
+
+enum LeaveType {
+  CASUAL
+  SICK
+  SPECIAL
+  EMERGENCY
+  HALF_DAY
+}
+
+enum LeaveDuration {
+  FULL_DAY
+  HALF_DAY
+}
+
+enum HalfDaySession {
+  FIRST_HALF
+  SECOND_HALF
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  EXPIRED
+}
+
+enum MissingType {
+  MISSING_IN
+  MISSING_OUT
+  BOTH
+}
+
+enum WorkActivityStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model User {
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  employeeId   String?
+  adminId      String?
+  name         String
+  email        String?
+  phone        String?
+  department   String?
+  profilePhotoUrl String?
+  joiningDate  String?
+  dateOfBirth  String?
+  gender       String?
+  bloodGroup   String?
+  emergencyContact String?
+  address      String?
+  designation  String
+  city         String
+  workMode     WorkMode     @default(WFO)
+  role         Role         @default(EMPLOYEE)
+  permissions  Permission[]
+  managerId    String?      @db.ObjectId
+  passwordHash String
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  manager      User?        @relation("ManagerMembers", fields: [managerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  teamMembers  User[]       @relation("ManagerMembers")
+
+  refreshTokens       RefreshToken[]
+  attendanceDays      AttendanceDay[]
+  leaveRequests       LeaveRequest[] @relation("LeaveEmployee")
+  leaveApprovals      LeaveRequest[] @relation("LeaveApprover")
+  arsRequests         ArsRequest[]   @relation("ArsEmployee")
+  arsApprovals        ArsRequest[]   @relation("ArsApprover")
+  announcements       Announcement[] @relation("AnnouncementCreator")
+  holidaysCreated     Holiday[]      @relation("HolidayCreator")
+  policiesPublished   Policy[]       @relation("PolicyPublisher")
+  workHeartbeats      WorkHeartbeat[]
+  createdProjects     Project[]      @relation("ProjectCreator")
+  projectAssignments  ProjectAssignment[]
+  ownedCredentials    Credential[]   @relation("CredentialOwner")
+  createdCredentials  Credential[]   @relation("CredentialCreator")
+
+  @@index([managerId])
+  @@index([employeeId])
+  @@index([adminId])
+  @@index([email])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String    @db.ObjectId
+  tokenHash String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model AttendanceDay {
+  id                    String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId                String           @db.ObjectId
+  date                  DateTime
+  status                AttendanceStatus @default(ABSENT)
+  punchInAt             DateTime?
+  punchOutAt            DateTime?
+  workingMinutes        Int?
+  timezoneOffsetMinutes Int?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  user                  User             @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([userId, date])
+  @@map("attendance_days")
+}
+
+model LeaveRequest {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  employeeId  String        @db.ObjectId
+  approverId  String        @db.ObjectId
+  type        LeaveType
+  duration    LeaveDuration @default(FULL_DAY)
+  halfDaySession HalfDaySession?
+  reason      String
+  dates       String[]
+  startDate   DateTime
+  endDate     DateTime
+  status      RequestStatus @default(PENDING)
+  comment     String?
+  actedAt     DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  employee    User          @relation("LeaveEmployee", fields: [employeeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approver    User          @relation("LeaveApprover", fields: [approverId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([employeeId, approverId, status])
+  @@index([approverId, status])
+  @@index([employeeId, status])
+  @@map("leave_requests")
+}
+
+model ArsRequest {
+  id                   String        @id @default(auto()) @map("_id") @db.ObjectId
+  employeeId           String        @db.ObjectId
+  approverId           String        @db.ObjectId
+  date                 DateTime
+  missingType          MissingType
+  reason               String
+  status               RequestStatus @default(PENDING)
+  correctedPunchInAt   DateTime?
+  correctedPunchOutAt  DateTime?
+  comment              String?
+  actedAt              DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  employee             User          @relation("ArsEmployee", fields: [employeeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approver             User          @relation("ArsApprover", fields: [approverId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([employeeId, approverId, status])
+  @@index([approverId, status])
+  @@index([employeeId, status])
+  @@index([employeeId, date])
+  @@map("ars_requests")
+}
+
+model Announcement {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  body        String
+  imageUrl    String?
+  createdById String    @db.ObjectId
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdBy   User      @relation("AnnouncementCreator", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([createdAt])
+  @@map("announcements")
+}
+
+model Holiday {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  date        DateTime  @unique
+  name        String
+  imageUrl    String?
+  createdById String    @db.ObjectId
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdBy   User      @relation("HolidayCreator", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("holidays")
+}
+
+model Policy {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  attendancePolicy String
+  leavePolicy      String
+  casualLeaveAllowance Float?
+  sickLeaveAllowance Float?
+  specialLeaveAllowance Float?
+  emergencyLeaveAllowance Float?
+  createdById      String    @db.ObjectId
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  createdBy        User      @relation("PolicyPublisher", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([createdAt])
+  @@map("policies")
+}
+
+model WorkHeartbeat {
+  id              String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String             @db.ObjectId
+  recordedAt      DateTime
+  status          WorkActivityStatus
+  durationSeconds Int
+  deviceId        String?
+  editor          String             @default("vscode")
+  isFocused       Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+
+  user            User               @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([userId, recordedAt])
+  @@index([recordedAt])
+  @@map("work_heartbeats")
+}
+
+model Project {
+  id             String              @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  client         String
+  summary        String
+  category       String
+  status         String              @default("PLANNING")
+  teamName       String?
+  frontendStack  String?
+  backendStack   String?
+  qaSummary      String?
+  supportSummary String?
+  modules        String[]
+  highlights     String[]
+  createdById    String              @db.ObjectId
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  createdBy      User                @relation("ProjectCreator", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  assignments    ProjectAssignment[]
+
+  @@index([createdById, createdAt])
+  @@index([category, status])
+  @@map("projects")
+}
+
+model ProjectAssignment {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  projectId  String   @db.ObjectId
+  userId     String   @db.ObjectId
+  roleLabel  String?
+  createdAt  DateTime @default(now())
+
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user       User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([projectId, userId])
+  @@index([userId, createdAt])
+  @@index([projectId, createdAt])
+  @@map("project_assignments")
+}
+
+model Credential {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  ownerUserId     String   @db.ObjectId
+  systemName      String
+  credentialLabel String
+  loginId         String
+  password        String
+  accessUrl       String?
+  notes           String?
+  createdByUserId String   @db.ObjectId
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  owner           User     @relation("CredentialOwner", fields: [ownerUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdBy       User     @relation("CredentialCreator", fields: [createdByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([ownerUserId, updatedAt])
+  @@index([createdByUserId, updatedAt])
+  @@index([systemName])
+  @@map("credentials")
+}
