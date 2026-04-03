@@ -3,17 +3,45 @@ import { env } from './config/env';
 import { prisma } from './db/prisma';
 
 let server: ReturnType<typeof app.listen>;
+let isShuttingDown = false;
+
+const disconnectPrisma = async (): Promise<void> => {
+  try {
+    await prisma.$disconnect();
+  } catch (error) {
+    console.error('Failed to disconnect database client cleanly.', error);
+  }
+};
+
+const exitWithStartupError = async (error: NodeJS.ErrnoException): Promise<never> => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(
+      `Port ${env.PORT} is already in use. Stop the other process using that port or set PORT in autovyn-backend/.env to a different value.`
+    );
+  } else {
+    console.error('Failed to start HTTP server.', error);
+  }
+
+  await disconnectPrisma();
+  process.exit(1);
+};
 
 const shutdown = async (signal: string): Promise<void> => {
+  if (isShuttingDown) {
+    return;
+  }
+
+  isShuttingDown = true;
   console.log(`Received ${signal}, shutting down gracefully...`);
+
   if (!server) {
-    await prisma.$disconnect();
+    await disconnectPrisma();
     process.exit(0);
     return;
   }
 
   server.close(async () => {
-    await prisma.$disconnect();
+    await disconnectPrisma();
     process.exit(0);
   });
 };
@@ -34,8 +62,13 @@ const start = async (): Promise<void> => {
     server = app.listen(env.PORT, () => {
       console.log(`Autovyn backend listening on port ${env.PORT}`);
     });
+
+    server.once('error', (error: NodeJS.ErrnoException) => {
+      void exitWithStartupError(error);
+    });
   } catch (error) {
-    console.error('Failed to connect to database.', error);
+    console.error('Failed to initialize backend.', error);
+    await disconnectPrisma();
     process.exit(1);
   }
 };

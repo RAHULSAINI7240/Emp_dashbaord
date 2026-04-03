@@ -1,6 +1,7 @@
 import { Permission, Role, WorkActivityStatus } from '@prisma/client';
 import { AppError } from '../../utils/app-error';
 import { dateKeyToUtcDate, getDateKeyFromOffset, validateDateFormat } from '../../utils/date-time';
+import { worklogLiveState } from './worklog.live';
 import { worklogRepository } from './worklog.repository';
 
 interface AuthContext {
@@ -164,6 +165,15 @@ export const worklogService = {
       isFocused: payload.isFocused ?? true
     });
 
+    worklogLiveState.updateFromHeartbeat({
+      userId: auth.userId,
+      status: payload.status,
+      editor,
+      deviceId: payload.deviceId,
+      isFocused: payload.isFocused ?? true,
+      recordedAt
+    });
+
     return {
       id: saved.id,
       userId: saved.userId,
@@ -174,6 +184,29 @@ export const worklogService = {
       isFocused: saved.isFocused,
       recordedAt: saved.recordedAt.toISOString()
     };
+  },
+
+  async presence(
+    auth: AuthContext,
+    payload: {
+      status: 'ACTIVE' | 'IDLE' | 'OFFLINE';
+      recordedAt?: string;
+      deviceId?: string;
+      editor?: string;
+      isFocused?: boolean;
+    }
+  ) {
+    const editor = normalizeEditor(payload.editor);
+    const presence = worklogLiveState.updatePresence({
+      userId: auth.userId,
+      status: payload.status,
+      editor,
+      deviceId: payload.deviceId,
+      isFocused: payload.isFocused ?? payload.status === 'ACTIVE',
+      recordedAt: payload.recordedAt ?? new Date().toISOString()
+    });
+
+    return presence;
   },
 
   async summary(auth: AuthContext, query: SummaryQuery, timezoneOffsetMinutes: number) {
@@ -252,6 +285,7 @@ export const worklogService = {
       .map((user) => {
         const summary = aggregateRows(rowsByUser.get(user.id) ?? [], timezoneOffsetMinutes);
         const latestHeartbeat = latestHeartbeatByUser.get(user.id);
+        const livePresence = worklogLiveState.getPresence(user.id);
         return {
           user,
           activeSeconds: summary.activeSeconds,
@@ -259,10 +293,10 @@ export const worklogService = {
           totalTrackedSeconds: summary.totalSeconds,
           productivityPercent: summary.productivityPercent,
           daily: summary.daily,
-          liveStatus: resolveLiveStatus(latestHeartbeat),
-          lastHeartbeatAt: latestHeartbeat?.recordedAt.toISOString() ?? null,
-          lastHeartbeatEditor: latestHeartbeat?.editor ?? null,
-          lastHeartbeatFocused: latestHeartbeat?.isFocused ?? null
+          liveStatus: livePresence?.status ?? resolveLiveStatus(latestHeartbeat),
+          lastHeartbeatAt: livePresence?.recordedAt ?? latestHeartbeat?.recordedAt.toISOString() ?? null,
+          lastHeartbeatEditor: livePresence?.editor ?? latestHeartbeat?.editor ?? null,
+          lastHeartbeatFocused: livePresence ? livePresence.isFocused : latestHeartbeat?.isFocused ?? null
         };
       })
       .sort((a, b) => a.user.name.localeCompare(b.user.name));

@@ -39,13 +39,16 @@ export const createUserSchema = z
     }
   });
 
-export const listTeamMembersQuerySchema = z.object({
+export const listUsersQuerySchema = z.object({
   search: z.string().trim().optional(),
   city: z.string().trim().optional(),
   workMode: z.nativeEnum(WorkMode).optional(),
-  onlineStatus: z.enum(['ONLINE', 'OFFLINE']).optional(),
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().optional()
+});
+
+export const listTeamMembersQuerySchema = listUsersQuerySchema.extend({
+  onlineStatus: z.enum(['ONLINE', 'OFFLINE']).optional()
 });
 
 export const approverQuerySchema = z.object({

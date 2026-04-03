@@ -1,4 +1,8 @@
+const browserLocation = globalThis.location;
+const apiProtocol = browserLocation?.protocol === 'https:' ? 'https:' : 'http:';
+const apiHostname = browserLocation?.hostname ?? 'localhost';
+
 export const environment = {
   production: true,
-  apiBaseUrl: 'http://localhost:3000/api'
+  apiBaseUrl: `${apiProtocol}//${apiHostname}:3001/api`
 };

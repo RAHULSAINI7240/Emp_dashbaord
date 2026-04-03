@@ -25,6 +25,17 @@ export const usersController = {
     return sendSuccess(res, 'Approvers fetched successfully.', data);
   }),
 
+  listUsers: asyncHandler(async (req: Request, res: Response) => {
+    const data = await usersService.listUsers({
+      search: req.query.search as string | undefined,
+      city: req.query.city as string | undefined,
+      workMode: req.query.workMode as 'WFO' | 'WFH' | 'HYBRID' | undefined,
+      page: req.query.page ? Number(req.query.page) : undefined,
+      limit: req.query.limit ? Number(req.query.limit) : undefined
+    });
+    return sendSuccess(res, 'Users fetched successfully.', data);
+  }),
+
   listTeamMembers: asyncHandler(async (req: Request, res: Response) => {
     const data = await usersService.listTeamMembers(
       {

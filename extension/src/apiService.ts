@@ -100,7 +100,7 @@ interface OllamaGenerateResponse {
 export class ApiService {
   getApiUrl(): string {
     const config = vscode.workspace.getConfiguration('autovyn');
-    const configured = config.get<string>('apiUrl', 'http://localhost:3000');
+    const configured = config.get<string>('apiUrl', 'http://localhost:3001');
     return configured.replace(/\/+$/, '');
   }
 

@@ -1,6 +1,6 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, catchError, forkJoin, map, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, forkJoin, map, of, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse, PaginatedData } from '../../shared/models/api.model';
 import { LeaveRequest, LeaveSummary, RequestStatus } from '../../shared/models/leave.model';
@@ -73,7 +73,7 @@ export class LeaveService {
       return this.fetchMyLeaves().pipe(map((items) => items.filter((item) => item.employeeId === employeeId)));
     }
 
-    const canViewApprovals = current.roles.includes('ADMIN') || current.permissions.includes('APPROVE_LEAVE');
+    const canViewApprovals = this.canViewApprovals(current);
 
     const source$ = canViewApprovals ? this.fetchApprovalsCombined() : this.fetchMyLeaves();
     return source$.pipe(map((items) => items.filter((item) => item.employeeId === employeeId)));
@@ -83,7 +83,7 @@ export class LeaveService {
     const current = this.authService.getCurrentUserSnapshot();
     if (!current) return of([]);
 
-    const canViewApprovals = current.roles.includes('ADMIN') || current.permissions.includes('APPROVE_LEAVE');
+    const canViewApprovals = this.canViewApprovals(current);
     if (!canViewApprovals) return of([]);
 
     return this.fetchApprovalsCombined().pipe(map((items) => items.filter((item) => item.approverId === approverId)));
@@ -103,7 +103,10 @@ export class LeaveService {
         map((response) => this.mapLeave(response.data)),
         tap(() => {
           void this.refreshRequestsForCurrentUser().subscribe();
-        })
+        }),
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => new Error(this.resolveApiErrorMessage(error, 'Unable to submit leave request.')))
+        )
       );
   }
 
@@ -164,7 +167,7 @@ export class LeaveService {
       return of([]);
     }
 
-    const canViewApprovals = current.roles.includes('ADMIN') || current.permissions.includes('APPROVE_LEAVE');
+    const canViewApprovals = this.canViewApprovals(current);
     const source$ = canViewApprovals ? this.fetchApprovalsCombined() : this.fetchMyLeaves();
 
     return source$.pipe(
@@ -235,5 +238,19 @@ export class LeaveService {
       createdAt: raw.createdAt,
       comment: raw.comment ?? undefined
     };
+  }
+
+  private canViewApprovals(user: User): boolean {
+    return (
+      user.roles.includes('ADMIN') ||
+      ['APPROVE_LEAVE', 'MANAGER', 'TEAM_LEAD'].some((permission) => user.permissions.includes(permission as any))
+    );
+  }
+
+  private resolveApiErrorMessage(error: HttpErrorResponse, fallback: string): string {
+    const messageFromApi =
+      (error.error && typeof error.error === 'object' && 'message' in error.error ? (error.error.message as string) : '') || '';
+    const message = messageFromApi || error.message || fallback;
+    return typeof message === 'string' && message.trim() ? message.trim() : fallback;
   }
 }

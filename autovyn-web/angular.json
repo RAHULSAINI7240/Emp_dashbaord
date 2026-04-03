@@ -70,6 +70,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.dev.json"
+          },
           "configurations": {
             "production": {
               "buildTarget": "autovyn-web:build:production"

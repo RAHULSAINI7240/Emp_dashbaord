@@ -21,7 +21,8 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'timesheet',
-        loadComponent: () => import('../employee/timesheet/timesheet.component').then((m) => m.TimesheetComponent)
+        loadComponent: () =>
+          import('./timesheet-review/timesheet-review.component').then((m) => m.TimesheetReviewComponent)
       },
       {
         path: 'employees',

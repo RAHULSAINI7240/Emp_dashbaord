@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autovyn Agent</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">Autovyn Agent</p>
+        <h1>Desktop tracker running in the background</h1>
+        <p class="lead">
+          Sign in once with your backend employee ID and password. The agent stays active in the system tray until you
+          manually log out.
+        </p>
+      </section>
+
+      <section class="card" id="loginCard">
+        <div class="card-head">
+          <h2>Sign In</h2>
+          <p>Use the same employee credentials you use in the Autovyn backend.</p>
+        </div>
+        <form id="loginForm" class="stack">
+          <label class="field">
+            <span>Backend URL</span>
+            <input id="apiBaseUrl" name="apiBaseUrl" type="url" placeholder="https://your-backend.onrender.com or https://your-backend.onrender.com/api" required />
+          </label>
+          <label class="field">
+            <span>Employee ID</span>
+            <input id="employeeId" name="employeeId" type="text" placeholder="EMP1001" required />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="password" name="password" type="password" placeholder="Enter password" required />
+          </label>
+          <button type="submit" class="button primary" id="loginButton">Login And Start Agent</button>
+        </form>
+      </section>
+
+      <section class="card hidden" id="statusCard">
+        <div class="card-head">
+          <h2>Agent Status</h2>
+          <p id="statusSubtitle">Tracker is active.</p>
+        </div>
+        <div class="pill-row">
+          <span class="status-pill" id="statusPill">SIGNED_OUT</span>
+          <span class="ghost-pill" id="syncPill">SIGNED_OUT</span>
+        </div>
+        <div class="metrics">
+          <div class="metric">
+            <span>Total Tracked</span>
+            <strong id="trackedValue">00:00:00</strong>
+          </div>
+          <div class="metric">
+            <span>Active Time</span>
+            <strong id="activeValue">00:00:00</strong>
+          </div>
+          <div class="metric">
+            <span>Idle Time</span>
+            <strong id="idleValue">00:00:00</strong>
+          </div>
+          <div class="metric">
+            <span>Last Sync</span>
+            <strong id="lastSyncValue">Not yet</strong>
+          </div>
+        </div>
+        <div class="details">
+          <div><span>User</span><strong id="userValue">-</strong></div>
+          <div><span>Device ID</span><strong id="deviceValue">-</strong></div>
+          <div><span>Queued Heartbeats</span><strong id="queueValue">0</strong></div>
+        </div>
+        <button type="button" class="button danger" id="logoutButton">Logout And Stop Tracking</button>
+      </section>
+
+      <section class="card" id="settingsCard">
+        <div class="card-head">
+          <h2>Tracker Settings</h2>
+          <p>These settings are stored locally and reused after restart.</p>
+        </div>
+        <form id="settingsForm" class="stack">
+          <label class="field">
+            <span>API Base URL</span>
+            <input id="settingsApiBaseUrl" name="settingsApiBaseUrl" type="url" placeholder="https://your-backend.onrender.com or https://your-backend.onrender.com/api" required />
+          </label>
+          <label class="field">
+            <span>Idle Timeout In Seconds</span>
+            <input id="idleTimeoutSeconds" name="idleTimeoutSeconds" type="number" min="60" step="10" value="60" required />
+          </label>
+          <label class="toggle">
+            <input id="launchAtLogin" name="launchAtLogin" type="checkbox" checked />
+            <span>Start agent automatically when the system starts</span>
+          </label>
+          <button type="submit" class="button secondary">Save Settings</button>
+        </form>
+      </section>
+
+      <section class="banner hidden" id="messageBanner"></section>
+    </main>
+
+    <script src="./renderer.js"></script>
+  </body>
+</html>

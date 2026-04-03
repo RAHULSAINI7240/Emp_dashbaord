@@ -1,6 +1,6 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, catchError, forkJoin, map, of } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../../shared/models/api.model';
 import { AttendanceDay, AttendanceStatus } from '../../shared/models/attendance.model';
@@ -8,8 +8,11 @@ import { AttendanceDay, AttendanceStatus } from '../../shared/models/attendance.
 interface BackendAttendanceDay {
   date: string;
   status: AttendanceStatus;
+  punchInUtc: string | null;
+  punchOutUtc: string | null;
   punchInLocal: string | null;
   punchOutLocal: string | null;
+  workingMinutes: number | null;
   workingHours: string | null;
   holiday?: {
     name: string;
@@ -50,25 +53,29 @@ export class AttendanceService {
     );
   }
 
-  punchIn(): Observable<AttendanceDay | null> {
+  punchIn(): Observable<AttendanceDay> {
     return this.http
       .post<ApiResponse<BackendAttendanceDay>>(`${this.apiBase}/attendance/punch-in`, {
         timezoneOffsetMinutes: this.timezoneOffsetMinutes()
       })
       .pipe(
         map((response) => this.mapDay(response.data)),
-        catchError(() => of(null))
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => new Error(this.resolveApiErrorMessage(error, 'Unable to punch in.')))
+        )
       );
   }
 
-  punchOut(): Observable<AttendanceDay | null> {
+  punchOut(): Observable<AttendanceDay> {
     return this.http
       .post<ApiResponse<BackendAttendanceDay>>(`${this.apiBase}/attendance/punch-out`, {
         timezoneOffsetMinutes: this.timezoneOffsetMinutes()
       })
       .pipe(
         map((response) => this.mapDay(response.data)),
-        catchError(() => of(null))
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => new Error(this.resolveApiErrorMessage(error, 'Unable to punch out.')))
+        )
       );
   }
 
@@ -82,6 +89,9 @@ export class AttendanceService {
       status: day.status,
       punchIn: day.punchInLocal ?? undefined,
       punchOut: day.punchOutLocal ?? undefined,
+      punchInUtc: day.punchInUtc ?? undefined,
+      punchOutUtc: day.punchOutUtc ?? undefined,
+      workingMinutes: day.workingMinutes ?? undefined,
       workingHours: day.workingHours ?? undefined,
       holidayName: day.holiday?.name ?? undefined,
       holidayImageUrl: day.holiday?.imageUrl ?? undefined
@@ -105,5 +115,12 @@ export class AttendanceService {
 
   private buildTimezoneParams(): HttpParams {
     return new HttpParams().set('timezoneOffsetMinutes', String(this.timezoneOffsetMinutes()));
+  }
+
+  private resolveApiErrorMessage(error: HttpErrorResponse, fallback: string): string {
+    const messageFromApi =
+      (error.error && typeof error.error === 'object' && 'message' in error.error ? (error.error.message as string) : '') || '';
+    const message = messageFromApi || error.message || fallback;
+    return typeof message === 'string' && message.trim() ? message.trim() : fallback;
   }
 }

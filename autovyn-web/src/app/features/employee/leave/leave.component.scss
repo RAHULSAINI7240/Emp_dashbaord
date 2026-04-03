@@ -212,7 +212,7 @@
 }
 
 .type-grid {
-  display: grid;
+  display: none;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }

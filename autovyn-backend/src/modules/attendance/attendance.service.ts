@@ -60,10 +60,6 @@ const mapAttendanceRow = (
 
 export const attendanceService = {
   async punchIn(auth: AuthContext, timezoneOffsetMinutes: number) {
-    if (auth.role === 'ADMIN') {
-      throw new AppError('Admin cannot use employee punch-in endpoint.', 403, 'ADMIN_PUNCH_NOT_ALLOWED');
-    }
-
     const now = new Date();
     const dateKey = getDateKeyFromOffset(now, timezoneOffsetMinutes);
     const date = dateKeyToUtcDate(dateKey);
@@ -88,10 +84,6 @@ export const attendanceService = {
   },
 
   async punchOut(auth: AuthContext, timezoneOffsetMinutes: number) {
-    if (auth.role === 'ADMIN') {
-      throw new AppError('Admin cannot use employee punch-out endpoint.', 403, 'ADMIN_PUNCH_NOT_ALLOWED');
-    }
-
     const now = new Date();
     const dateKey = getDateKeyFromOffset(now, timezoneOffsetMinutes);
     const date = dateKeyToUtcDate(dateKey);
@@ -120,10 +112,6 @@ export const attendanceService = {
   },
 
   async getMonth(auth: AuthContext, month: string, timezoneOffsetMinutes: number) {
-    if (auth.role === 'ADMIN') {
-      throw new AppError('Admin cannot use employee month endpoint.', 403, 'ADMIN_MONTH_NOT_ALLOWED');
-    }
-
     const { start, end } = monthStartEnd(month);
     const [rows, holidays] = await Promise.all([
       attendanceRepository.listByUserBetween(auth.userId, start, end),
@@ -193,10 +181,6 @@ export const attendanceService = {
   },
 
   async getDay(auth: AuthContext, dateKey: string, timezoneOffsetMinutes: number) {
-    if (auth.role === 'ADMIN') {
-      throw new AppError('Admin cannot use employee day endpoint.', 403, 'ADMIN_DAY_NOT_ALLOWED');
-    }
-
     validateDateFormat(dateKey);
     const date = dateKeyToUtcDate(dateKey);
 

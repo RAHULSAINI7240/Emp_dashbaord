@@ -43,7 +43,7 @@ export const EMPLOYEE_ROUTES: Routes = [
       {
         path: 'leave/approvals',
         canActivate: [permissionGuard],
-        data: { permission: 'APPROVE_LEAVE' },
+        data: { permissions: ['APPROVE_LEAVE', 'MANAGER', 'TEAM_LEAD'] },
         loadComponent: () =>
           import('./leave-approvals/leave-approvals.component').then((m) => m.LeaveApprovalsComponent)
       },
@@ -58,7 +58,7 @@ export const EMPLOYEE_ROUTES: Routes = [
       {
         path: 'ars/approvals',
         canActivate: [permissionGuard],
-        data: { permission: 'APPROVE_ARS' },
+        data: { permissions: ['APPROVE_ARS', 'MANAGER', 'TEAM_LEAD'] },
         loadComponent: () => import('./ars-approvals/ars-approvals.component').then((m) => m.ArsApprovalsComponent)
       },
       {

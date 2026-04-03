@@ -154,13 +154,12 @@ export class AuthService {
   }
 
   handleAuthFailure(): void {
-    this.clearSession();
+    // Keep the persisted session until the user explicitly logs out.
   }
 
   tryRefreshSession(): Observable<boolean> {
     const session = this.getSession();
     if (!session?.refreshToken) {
-      this.clearSession();
       return of(false);
     }
 
@@ -173,10 +172,7 @@ export class AuthService {
         this.refreshUsers();
         return true;
       }),
-      catchError(() => {
-        this.clearSession();
-        return of(false);
-      })
+      catchError(() => of(false))
     );
   }
 
@@ -341,7 +337,6 @@ export class AuthService {
           }
 
           if (!session.refreshToken) {
-            this.clearSession();
             return of(null);
           }
 
@@ -350,12 +345,7 @@ export class AuthService {
               this.persistSession(payload);
               return this.fetchCurrentUser();
             }),
-            catchError((refreshError: HttpErrorResponse) => {
-              if (this.isAuthFailure(refreshError)) {
-                this.clearSession();
-              }
-              return of(null);
-            })
+            catchError(() => of(null))
           );
         })
       )
@@ -436,7 +426,7 @@ export class AuthService {
   private fetchAllTeamMembers(): Observable<User[]> {
     const limit = 100;
     const pageRequest = (page: number): Observable<ApiResponse<PaginatedData<BackendUser>>> =>
-      this.http.get<ApiResponse<PaginatedData<BackendUser>>>(`${this.apiBase}/team/members`, {
+      this.http.get<ApiResponse<PaginatedData<BackendUser>>>(`${this.apiBase}/users`, {
         params: new HttpParams().set('page', String(page)).set('limit', String(limit))
       });
 
@@ -454,11 +444,10 @@ export class AuthService {
         );
       }),
       map((items) => items.map((item) => this.mapUser(item))),
-      catchError((error: HttpErrorResponse) => {
-        if (this.isAuthFailure(error)) {
-          this.clearSession();
-        }
-        return of([]);
+      catchError(() => {
+        const current = this.currentUserSubject.value;
+        const fallbackUsers = this.usersSubject.value.length ? this.usersSubject.value : current ? [current] : [];
+        return of(fallbackUsers);
       })
     );
   }

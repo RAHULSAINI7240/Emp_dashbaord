@@ -65,7 +65,7 @@ src/
    ```bash
    npm run prisma:push
    ```
-8. Seed sample data:
+8. Seed bundled dummy login data:
    ```bash
    npm run db:seed
    ```
@@ -74,7 +74,7 @@ src/
    npm run dev
    ```
 
-Base URL: `http://localhost:3000/api`
+Base URL: `http://localhost:3001/api`
 
 ## Environment
 Use `.env.example` as reference.
@@ -86,16 +86,9 @@ Important values:
 - `CORS_ORIGIN=http://localhost:4200`
 
 ## Seed Users
-- Admin:
-  - `adminId`: `VYN01`
-  - `password`: `Admin@123`
-- Managers:
-  - `employeeId`: `VYN02`, `password`: `Emp@123`
-  - `employeeId`: `VYN03`, `password`: `Emp@123`
-- Employees:
-  - `VYN05` ... `VYN09`, `password`: `Emp@123`
-- HR:
-  - `employeeId`: `VYN04`, `password`: `Emp@123`
+- `npm run db:seed` imports the bundled dummy CSV at `prisma/data/dummy-autovyn-users.csv`.
+- Employee login uses the CSV `EmployeeID` values such as `EMP1001`.
+- Passwords come from the CSV `UserPassword` column by default.
 
 ## Authentication
 - `POST /auth/login`
@@ -196,9 +189,9 @@ Error:
 
 ### Employee login
 ```bash
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"loginId":"VYN05","password":"Emp@123"}'
+  -d '{"loginId":"EMP1001","password":"2016-02-19"}'
 ```
 
 ### Import users with one known password
@@ -218,7 +211,7 @@ npm run db:password:set -- --all --role EMPLOYEE --password Emp@123
 
 ### Punch in
 ```bash
-curl -X POST http://localhost:3000/api/attendance/punch-in \
+curl -X POST http://localhost:3001/api/attendance/punch-in \
   -H "Authorization: Bearer <ACCESS_TOKEN>" \
   -H "Content-Type: application/json" \
   -d '{"timezoneOffsetMinutes":-330}'
@@ -226,7 +219,7 @@ curl -X POST http://localhost:3000/api/attendance/punch-in \
 
 ### Leave request
 ```bash
-curl -X POST http://localhost:3000/api/leaves/request \
+curl -X POST http://localhost:3001/api/leaves/request \
   -H "Authorization: Bearer <ACCESS_TOKEN>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -239,7 +232,7 @@ curl -X POST http://localhost:3000/api/leaves/request \
 
 ### ARS approve
 ```bash
-curl -X POST http://localhost:3000/api/ars/<ARS_ID>/approve \
+curl -X POST http://localhost:3001/api/ars/<ARS_ID>/approve \
   -H "Authorization: Bearer <ACCESS_TOKEN>" \
   -H "Content-Type: application/json" \
   -d '{

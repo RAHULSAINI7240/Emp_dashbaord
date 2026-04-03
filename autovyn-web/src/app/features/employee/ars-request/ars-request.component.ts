@@ -96,9 +96,15 @@ export class ArsRequestComponent {
         missingType: value.missingType as any,
         reason: value.reason || ''
       })
-      .subscribe(() => {
-        this.toastService.show('ARS request submitted', 'success');
-        this.form.reset({ date: '', missingType: 'MISSING_PUNCH_IN', reason: '', approverId: '' });
+      .subscribe({
+        next: () => {
+          this.toastService.show('ARS request submitted', 'success');
+          this.form.reset({ date: '', missingType: 'MISSING_PUNCH_IN', reason: '', approverId: '' });
+        },
+        error: (error: unknown) => {
+          const message = error instanceof Error && error.message.trim() ? error.message.trim() : 'Unable to submit ARS request.';
+          this.toastService.show(message, 'error');
+        }
       });
   }
 }

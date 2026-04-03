@@ -175,6 +175,44 @@
   }
 }
 
+.punch-status-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-top: 0.95rem;
+  padding: 0.95rem 1rem 0;
+  border-top: 1px solid #d8e0ee;
+
+  p {
+    margin: 0;
+    color: #607087;
+    text-align: right;
+  }
+}
+
+.punch-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  background: #edf2f8;
+  color: #50657f;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.punch-status-pill.live {
+  background: #ddf7e8;
+  color: #0f7c52;
+}
+
+.punch-status-pill.done {
+  background: #dfeaff;
+  color: #174ea6;
+}
+
 .punch-slider {
   --knob-gap: 4px;
   max-width: 540px;
@@ -191,20 +229,6 @@
   touch-action: pan-y;
   position: relative;
   overflow: hidden;
-
-  .swipe-label {
-    color: #fff;
-    font-weight: 700;
-    letter-spacing: 0.01em;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-    text-align: center;
-    width: 100%;
-    padding: 0 4rem;
-    pointer-events: none;
-  }
 }
 
 .punch-slider.punched-in {
@@ -213,6 +237,23 @@
 
 .punch-slider.punched-out {
   background: linear-gradient(90deg, #ec4a54 0%, #ff8a90 100%);
+}
+
+.punch-slider.day-complete {
+  background: linear-gradient(90deg, #21539b 0%, #4e7ed9 100%);
+}
+
+.swipe-copy {
+  width: 100%;
+  padding: 0 5.4rem 0 1.35rem;
+  color: #fff;
+  pointer-events: none;
+
+  strong {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+  }
 }
 
 .swipe-knob {
@@ -1113,5 +1154,19 @@ mat-icon {
 
   .vscode-chart {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .punch-status-strip {
+    display: grid;
+
+    p {
+      text-align: left;
+    }
+  }
+
+  .swipe-copy {
+    padding: 0 5rem 0 0.85rem;
   }
 }

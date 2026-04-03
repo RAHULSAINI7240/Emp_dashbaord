@@ -39,7 +39,12 @@ const normalizeMissingType = (value: string): MissingType => {
   throw new AppError('Invalid missingType.', 400, 'INVALID_MISSING_TYPE');
 };
 
-const canApproveArs = (auth: AuthContext): boolean => auth.role === 'ADMIN' || auth.permissions.includes('APPROVE_ARS');
+const ARS_APPROVER_PERMISSIONS: Permission[] = ['APPROVE_ARS', 'MANAGER', 'TEAM_LEAD'];
+
+const hasArsApprovalAccess = (permissions: Permission[]): boolean =>
+  ARS_APPROVER_PERMISSIONS.some((permission) => permissions.includes(permission));
+
+const canApproveArs = (auth: AuthContext): boolean => auth.role === 'ADMIN' || hasArsApprovalAccess(auth.permissions);
 
 const serializeArs = (request: {
   id: string;
@@ -98,7 +103,7 @@ const ensureApproverConstraints = (request: Awaited<ReturnType<typeof arsReposit
     return;
   }
 
-  if (!auth.permissions.includes('APPROVE_ARS')) {
+  if (!hasArsApprovalAccess(auth.permissions)) {
     throw new AppError('Missing ARS approval permission.', 403, 'FORBIDDEN_ARS_APPROVAL');
   }
 
@@ -110,9 +115,6 @@ const ensureApproverConstraints = (request: Awaited<ReturnType<typeof arsReposit
     throw new AppError('Self-approval is not allowed.', 403, 'SELF_APPROVAL_NOT_ALLOWED');
   }
 
-  if (request.employee.managerId !== auth.userId) {
-    throw new AppError('You can approve only your team members.', 403, 'TEAM_SCOPE_VIOLATION');
-  }
 };
 
 const resolveApproverId = async (auth: AuthContext, explicitApproverId?: string): Promise<string> => {
@@ -122,7 +124,7 @@ const resolveApproverId = async (auth: AuthContext, explicitApproverId?: string)
       throw new AppError('Approver not found or inactive.', 400, 'INVALID_APPROVER');
     }
 
-    if (!(approver.role === 'ADMIN' || approver.permissions.includes('APPROVE_ARS'))) {
+    if (!(approver.role === 'ADMIN' || hasArsApprovalAccess(approver.permissions))) {
       throw new AppError('Selected approver does not have ARS approval permission.', 400, 'APPROVER_CANNOT_APPROVE_ARS');
     }
 
@@ -150,7 +152,7 @@ const resolveApproverId = async (auth: AuthContext, explicitApproverId?: string)
     if (!requester.managerId) return null;
     const manager = await arsRepository.findApproverById(requester.managerId);
     if (!manager || !manager.isActive) return null;
-    if (manager.role === 'ADMIN' || manager.permissions.includes('APPROVE_ARS')) {
+    if (manager.role === 'ADMIN' || hasArsApprovalAccess(manager.permissions)) {
       return manager.id;
     }
     return null;
@@ -219,12 +221,7 @@ export const arsService = {
       ...(auth.role === 'ADMIN'
         ? {}
         : {
-            approverId: auth.userId,
-            employee: {
-              is: {
-                managerId: auth.userId
-              }
-            }
+            approverId: auth.userId
           }),
       ...(query.search
         ? {

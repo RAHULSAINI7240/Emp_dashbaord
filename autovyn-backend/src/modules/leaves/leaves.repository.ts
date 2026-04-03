@@ -24,7 +24,7 @@ export const leavesRepository = {
     return prisma.user.findMany({
       where: {
         isActive: true,
-        OR: [{ role: 'ADMIN' }, { permissions: { has: 'APPROVE_LEAVE' } }]
+        OR: [{ role: 'ADMIN' }, { permissions: { hasSome: ['APPROVE_LEAVE', 'MANAGER', 'TEAM_LEAD'] } }]
       },
       select: {
         id: true,

@@ -59,7 +59,7 @@ export class LeaveRequestComponent {
       type: ['CASUAL', Validators.required],
       duration: ['FULL_DAY', Validators.required],
       halfDaySession: [''],
-      reason: ['', Validators.required],
+      reason: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(500)]],
       approverId: ['', Validators.required]
     });
 
@@ -212,12 +212,18 @@ export class LeaveRequestComponent {
         reason: payload.reason || '',
         dates
       })
-      .subscribe(() => {
-        this.toastService.show('Leave request submitted', 'success');
-        const fallbackApproverId = this.approvers[0]?.id ?? '';
-        this.form.reset({ type: 'CASUAL', duration: 'FULL_DAY', halfDaySession: '', approverId: fallbackApproverId });
-        this.selectedDates = [];
-        this.selectedCalendarDate = null;
+      .subscribe({
+        next: () => {
+          this.toastService.show('Leave request submitted', 'success');
+          const fallbackApproverId = this.approvers[0]?.id ?? '';
+          this.form.reset({ type: 'CASUAL', duration: 'FULL_DAY', halfDaySession: '', approverId: fallbackApproverId });
+          this.selectedDates = [];
+          this.selectedCalendarDate = null;
+        },
+        error: (error: unknown) => {
+          const message = error instanceof Error && error.message.trim() ? error.message.trim() : 'Unable to submit leave request.';
+          this.toastService.show(message, 'error');
+        }
       });
   }
 }

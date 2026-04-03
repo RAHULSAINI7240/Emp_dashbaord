@@ -1,0 +1,284 @@
+:root {
+  color-scheme: dark;
+  --bg: #08111f;
+  --panel: rgba(9, 19, 36, 0.92);
+  --panel-border: rgba(148, 163, 184, 0.16);
+  --text: #e5eefb;
+  --muted: #91a5c6;
+  --accent: #35c08a;
+  --accent-strong: #13a36b;
+  --warning: #f59e0b;
+  --danger: #f97373;
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", "SF Pro Display", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top right, rgba(53, 192, 138, 0.24), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.18), transparent 30%),
+    linear-gradient(160deg, #07101e 0%, #0b1326 45%, #060d19 100%);
+}
+
+.shell {
+  width: min(100%, 960px);
+  margin: 0 auto;
+  padding: 28px 22px 36px;
+}
+
+.hero {
+  padding: 10px 4px 22px;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: #83f0c0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.1;
+}
+
+.lead {
+  max-width: 38rem;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.card {
+  margin-bottom: 18px;
+  padding: 20px;
+  border: 1px solid var(--panel-border);
+  border-radius: 22px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.card-head h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+}
+
+.card-head p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.stack {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.field span,
+.toggle span {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.72);
+  color: var(--text);
+  font-size: 15px;
+}
+
+input:focus {
+  outline: 2px solid rgba(53, 192, 138, 0.35);
+  border-color: rgba(53, 192, 138, 0.45);
+}
+
+.toggle {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.toggle input {
+  width: 18px;
+  height: 18px;
+}
+
+.button {
+  border: 0;
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 120ms ease, background-color 120ms ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+}
+
+.button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.button.primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+}
+
+.button.secondary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.button.danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.pill-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 18px 0;
+}
+
+.status-pill,
+.ghost-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.status-pill {
+  background: rgba(37, 99, 235, 0.2);
+  border: 1px solid rgba(37, 99, 235, 0.26);
+}
+
+.ghost-pill {
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.status-pill[data-state="active"] {
+  background: rgba(34, 197, 94, 0.18);
+  border-color: rgba(34, 197, 94, 0.34);
+}
+
+.status-pill[data-state="idle"] {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.status-pill[data-state="syncing"] {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.34);
+}
+
+.status-pill[data-state="signed_out"] {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.32);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metric,
+.details > div {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.52);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.metric span,
+.details span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.metric strong,
+.details strong {
+  display: block;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.details {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0 18px;
+}
+
+.banner {
+  padding: 14px 16px;
+  border-radius: 16px;
+  font-weight: 600;
+}
+
+.banner.info {
+  background: rgba(59, 130, 246, 0.16);
+  border: 1px solid rgba(59, 130, 246, 0.26);
+}
+
+.banner.success {
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(34, 197, 94, 0.28);
+}
+
+.banner.danger {
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .shell {
+    padding: 22px 16px 32px;
+  }
+
+  .hero h1 {
+    font-size: 28px;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+}

@@ -268,6 +268,27 @@ export const usersService = {
     return approvers;
   },
 
+  async listUsers(query: { search?: string; city?: string; workMode?: 'WFO' | 'WFH' | 'HYBRID'; page?: number; limit?: number }) {
+    const { page, limit, skip } = getPagination(query);
+
+    const { rows, total } = await usersRepository.listUsers({
+      search: query.search,
+      city: query.city,
+      workMode: query.workMode,
+      skip,
+      take: limit
+    });
+
+    return {
+      items: rows.map((row) => ({
+        ...serializePublicUser(row),
+        manager: row.manager,
+        teamMembers: row.teamMembers
+      })),
+      pagination: buildPaginationMeta(page, limit, total)
+    };
+  },
+
   async listTeamMembers(
     query: {
       search?: string;

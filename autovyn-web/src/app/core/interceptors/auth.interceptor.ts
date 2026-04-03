@@ -19,16 +19,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authorizedRequest).pipe(
     catchError((error) => {
       if (error.status !== 401 || !session.refreshToken) {
-        if (error.status === 401) {
-          authService.handleAuthFailure();
-        }
         return throwError(() => error);
       }
 
       return authService.tryRefreshSession().pipe(
         switchMap((refreshed) => {
           if (!refreshed) {
-            authService.handleAuthFailure();
             return throwError(() => error);
           }
 
@@ -39,10 +35,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
           return next(req.clone({ setHeaders: { Authorization: `Bearer ${updatedSession.token}` } }));
         }),
-        catchError((refreshError) => {
-          authService.handleAuthFailure();
-          return throwError(() => refreshError);
-        })
+        catchError((refreshError) => throwError(() => refreshError))
       );
     })
   );

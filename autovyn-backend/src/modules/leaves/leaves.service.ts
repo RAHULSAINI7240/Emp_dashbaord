@@ -30,7 +30,12 @@ interface ListQuery {
   search?: string;
 }
 
-const canApproveLeave = (auth: AuthContext): boolean => auth.role === 'ADMIN' || auth.permissions.includes('APPROVE_LEAVE');
+const LEAVE_APPROVER_PERMISSIONS: Permission[] = ['APPROVE_LEAVE', 'MANAGER', 'TEAM_LEAD'];
+
+const hasLeaveApprovalAccess = (permissions: Permission[]): boolean =>
+  LEAVE_APPROVER_PERMISSIONS.some((permission) => permissions.includes(permission));
+
+const canApproveLeave = (auth: AuthContext): boolean => auth.role === 'ADMIN' || hasLeaveApprovalAccess(auth.permissions);
 
 const serializeLeave = (leave: {
   id: string;
@@ -89,7 +94,7 @@ const ensureApproverConstraints = (leave: Awaited<ReturnType<typeof leavesReposi
     return;
   }
 
-  if (!auth.permissions.includes('APPROVE_LEAVE')) {
+  if (!hasLeaveApprovalAccess(auth.permissions)) {
     throw new AppError('Missing leave approval permission.', 403, 'FORBIDDEN_LEAVE_APPROVAL');
   }
 
@@ -116,7 +121,7 @@ const assertFutureDatesOnly = (dates: string[]): void => {
 const calculateUnits = (duration: 'FULL_DAY' | 'HALF_DAY', dates: string[]): number => (duration === 'HALF_DAY' ? 0.5 : 1) * dates.length;
 
 const canUserApproveLeave = (user: { role: Role; permissions: Permission[]; isActive: boolean }): boolean =>
-  user.isActive && (user.role === 'ADMIN' || user.permissions.includes('APPROVE_LEAVE'));
+  user.isActive && (user.role === 'ADMIN' || hasLeaveApprovalAccess(user.permissions));
 
 const DEFAULT_LEAVE_ADMIN_ID = 'VYN01';
 const DEFAULT_LEAVE_ADMIN_NAME = 'Vikash Yadav';
@@ -214,7 +219,7 @@ export const leavesService = {
       throw new AppError('Approver not found or inactive.', 400, 'INVALID_APPROVER');
     }
 
-    const approverCanApprove = approver.role === 'ADMIN' || approver.permissions.includes('APPROVE_LEAVE');
+    const approverCanApprove = approver.role === 'ADMIN' || hasLeaveApprovalAccess(approver.permissions);
     if (!approverCanApprove) {
       throw new AppError('Selected approver cannot approve leave.', 400, 'APPROVER_CANNOT_APPROVE_LEAVE');
     }

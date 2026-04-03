@@ -51,16 +51,18 @@ export class EmployeeLayoutComponent implements OnDestroy {
   private applyUserNav(user: User | null): void {
     this.headerTitle = user?.roles.includes('HR') ? 'HR Portal' : 'Employee Portal';
     const navItems = [...this.baseNavItems];
+    const canApproveLeave = !!user && ['APPROVE_LEAVE', 'MANAGER', 'TEAM_LEAD'].some((permission) => user.permissions.includes(permission as any));
+    const canApproveArs = !!user && ['APPROVE_ARS', 'MANAGER', 'TEAM_LEAD'].some((permission) => user.permissions.includes(permission as any));
 
     if (user?.roles.includes('HR') || user?.permissions.includes('CREATE_USER')) {
       navItems.splice(3, 0, { label: 'Register User', icon: 'person_add', link: '/employee/register-user' });
     }
 
-    if (user?.permissions.includes('APPROVE_LEAVE')) {
+    if (canApproveLeave) {
       navItems.push({ label: 'Leave Approvals', icon: 'task', link: '/employee/leave/approvals' });
     }
 
-    if (user?.permissions.includes('APPROVE_ARS')) {
+    if (canApproveArs) {
       navItems.push({ label: 'ARS Approvals', icon: 'done_all', link: '/employee/ars/approvals' });
     }
 

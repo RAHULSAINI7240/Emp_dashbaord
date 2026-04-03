@@ -1,0 +1,364 @@
+<section class="review-shell">
+  <article class="hero-card panel-card">
+    <div class="hero-copy">
+      <p class="eyebrow">Admin Timesheet Desk</p>
+      <h2>Team List With Employee-Level Review</h2>
+      <p>
+        Open any employee from the list, then review their year, month, and day timesheet coverage with clear filled
+        and pending status.
+      </p>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-card">
+        <span>Total Team</span>
+        <strong>{{ organizationStats.totalEmployees }}</strong>
+      </div>
+      <div class="stat-card success">
+        <span>Filled Today</span>
+        <strong>{{ organizationStats.filledToday }}</strong>
+      </div>
+      <div class="stat-card warning">
+        <span>Pending Today</span>
+        <strong>{{ organizationStats.pendingToday }}</strong>
+      </div>
+      <div class="stat-card live">
+        <span>Live Punch</span>
+        <strong>{{ organizationStats.livePunch }}</strong>
+      </div>
+      <div class="stat-card">
+        <span>{{ selectedMonthLabel }} Hours</span>
+        <strong>{{ organizationStats.monthHours | number: '1.0-1' }}h</strong>
+      </div>
+      <div class="stat-card">
+        <span>{{ filters.controls.year.value }} Hours</span>
+        <strong>{{ organizationStats.yearHours | number: '1.0-1' }}h</strong>
+      </div>
+    </div>
+  </article>
+
+  <section class="workspace-grid">
+    <aside class="list-panel panel-card">
+      <div class="list-head">
+        <div>
+          <p class="eyebrow dark">Employee Directory</p>
+          <h3>All Users</h3>
+        </div>
+        <span class="count-chip">{{ visibleEmployees.length }}</span>
+      </div>
+
+      <label class="search-field">
+        <span>Search employee</span>
+        <input type="text" [formControl]="filters.controls.search" placeholder="Name, code, team, latest ticket..." />
+      </label>
+
+      <div class="employee-list" *ngIf="visibleEmployees.length; else noEmployees">
+        <button
+          type="button"
+          class="employee-row"
+          *ngFor="let employee of visibleEmployees"
+          [class.active]="selectedEmployeeId === employee.user.id"
+          (click)="selectEmployee(employee.user.id)"
+        >
+          <div class="row-top">
+            <div>
+              <p class="employee-code">{{ employee.code }}</p>
+              <h4>{{ employee.user.name }}</h4>
+              <p class="employee-meta">{{ employee.user.department || 'General Team' }} · {{ employee.user.designation }}</p>
+            </div>
+
+            <div class="row-badges">
+              <span class="fill-chip" [class.done]="employee.todayEntries.length > 0" [class.pending]="employee.todayEntries.length === 0">
+                {{ employee.todayEntries.length > 0 ? 'Filled' : 'Pending' }}
+              </span>
+              <span class="punch-chip" [class.live]="employee.punchState === 'PUNCHED_IN'" [class.done]="employee.punchState === 'PUNCHED_OUT'">
+                <mat-icon>{{ punchStateIcon(employee.punchState) }}</mat-icon>
+                {{ punchStateLabel(employee.punchState) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="row-metrics">
+            <div>
+              <span>Month</span>
+              <strong>{{ employee.monthHours | number: '1.0-1' }}h</strong>
+            </div>
+            <div>
+              <span>Year</span>
+              <strong>{{ employee.yearHours | number: '1.0-1' }}h</strong>
+            </div>
+            <div>
+              <span>Pending Days</span>
+              <strong>{{ employee.pendingDaysInMonth }}</strong>
+            </div>
+          </div>
+
+          <p class="latest-line">
+            {{
+              employee.latestEntry
+                ? employee.latestEntry.ticketId + ' · ' + employee.latestEntry.taskTitle
+                : 'No timesheet submitted yet'
+            }}
+          </p>
+        </button>
+      </div>
+
+      <ng-template #noEmployees>
+        <div class="empty-state compact">
+          <mat-icon>group_off</mat-icon>
+          <h4>No employee found</h4>
+          <p>Try a different search keyword.</p>
+        </div>
+      </ng-template>
+    </aside>
+
+    <section class="detail-column" *ngIf="selectedEmployeeSummary as summary; else noSelection">
+      <article class="employee-hero panel-card">
+        <div class="employee-copy">
+          <p class="eyebrow dark">Selected Employee</p>
+          <h3>{{ detailHeroTitle }}</h3>
+          <p class="employee-subline">
+            {{ summary.code }} · {{ summary.user.department || 'General Team' }} · {{ summary.user.designation }}
+          </p>
+          <div class="hero-punch">
+            <span class="punch-chip" [class.live]="summary.punchState === 'PUNCHED_IN'" [class.done]="summary.punchState === 'PUNCHED_OUT'">
+              <mat-icon>{{ punchStateIcon(summary.punchState) }}</mat-icon>
+              {{ punchStateLabel(summary.punchState) }}
+            </span>
+            <p>
+              In {{ summary.todayPunchLog?.punchIn ? (summary.todayPunchLog?.punchIn | date: 'hh:mm a') : '--:--' }} ·
+              Out {{ summary.todayPunchLog?.punchOut ? (summary.todayPunchLog?.punchOut | date: 'hh:mm a') : '--:--' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <label>
+            <span>Year</span>
+            <select [formControl]="filters.controls.year">
+              <option *ngFor="let year of yearOptions" [value]="year">{{ year }}</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Month</span>
+            <select [formControl]="filters.controls.month">
+              <option *ngFor="let month of monthPicker" [value]="month.value">{{ month.label }}</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Task Status</span>
+            <select [formControl]="filters.controls.taskStatus">
+              <option *ngFor="let status of taskStatusOptions" [value]="status">
+                {{ status === 'ALL' ? 'All Statuses' : statusLabel(status) }}
+              </option>
+            </select>
+          </label>
+
+          <button type="button" class="ghost-btn" (click)="resetFilters()">Reset</button>
+        </div>
+      </article>
+
+      <div class="summary-grid">
+        <article class="summary-card panel-card">
+          <span>Year Hours</span>
+          <strong>{{ summary.yearHours | number: '1.0-1' }}h</strong>
+          <small>{{ filters.controls.year.value }} work total</small>
+        </article>
+        <article class="summary-card panel-card">
+          <span>Month Hours</span>
+          <strong>{{ summary.monthHours | number: '1.0-1' }}h</strong>
+          <small>{{ selectedMonthLabel }}</small>
+        </article>
+        <article class="summary-card panel-card">
+          <span>Today Hours</span>
+          <strong>{{ summary.todayHours | number: '1.0-1' }}h</strong>
+          <small>{{ summary.todayEntries.length > 0 ? 'Filled today' : 'Pending today' }}</small>
+        </article>
+        <article class="summary-card panel-card">
+          <span>Filled Days</span>
+          <strong>{{ summary.filledDaysInMonth }}</strong>
+          <small>Days submitted this month</small>
+        </article>
+        <article class="summary-card panel-card warning">
+          <span>Pending Days</span>
+          <strong>{{ summary.pendingDaysInMonth }}</strong>
+          <small>Past days still missing</small>
+        </article>
+        <article class="summary-card panel-card">
+          <span>AI Share</span>
+          <strong>{{ employeeAiShare(summary) }}%</strong>
+          <small>Monthly AI-assisted work</small>
+        </article>
+      </div>
+
+      <section class="detail-grid">
+        <article class="month-panel panel-card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow dark">Month Coverage</p>
+              <h3>{{ selectedMonthLabel }} Day Register</h3>
+            </div>
+            <span class="count-chip">{{ dayStatusItems.length }} days</span>
+          </div>
+
+          <div class="day-register">
+            <button
+              type="button"
+              class="day-row"
+              *ngFor="let day of dayStatusItems"
+              [class.active]="selectedDayKey === day.date"
+              [class.filled]="day.state === 'FILLED'"
+              [class.pending]="day.state === 'PENDING'"
+              [class.weekend]="day.state === 'WEEKEND'"
+              [class.upcoming]="day.state === 'UPCOMING'"
+              (click)="selectDay(day.date)"
+            >
+              <div class="day-date">
+                <strong>{{ day.date | date: 'dd MMM y' }}</strong>
+                <small>{{ day.weekLabel }}</small>
+              </div>
+
+              <div class="day-status">
+                <span class="day-state-chip {{ day.state }}">
+                  <mat-icon>{{ dayStateIcon(day.state) }}</mat-icon>
+                  {{ day.label }}
+                </span>
+              </div>
+
+              <div class="day-log">
+                <span>Logged Time</span>
+                <strong>{{ day.firstLoggedAt ? (day.firstLoggedAt | date: 'hh:mm a') : '--:--' }}</strong>
+                <small>{{ day.lastUpdatedAt ? ('Updated ' + (day.lastUpdatedAt | date: 'hh:mm a')) : 'No update' }}</small>
+              </div>
+
+              <div class="day-hours">
+                <span>Hours</span>
+                <strong>{{ day.totalHours | number: '1.0-1' }}h</strong>
+              </div>
+
+              <div class="day-tasks">
+                <span>Tasks</span>
+                <strong>{{ day.entryCount }}</strong>
+              </div>
+            </button>
+          </div>
+        </article>
+
+        <article class="day-panel panel-card" *ngIf="selectedDaySummary as day">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow dark">Day Overview</p>
+              <h3>{{ day.date | date: 'EEEE, MMM d, y' }}</h3>
+            </div>
+            <span class="day-state-chip {{ day.state }}">
+              <mat-icon>{{ dayStateIcon(day.state) }}</mat-icon>
+              {{ day.label }}
+            </span>
+          </div>
+
+          <div class="day-kpis">
+            <div>
+              <span>Entries</span>
+              <strong>{{ day.entryCount }}</strong>
+            </div>
+            <div>
+              <span>Total Hours</span>
+              <strong>{{ day.totalHours | number: '1.0-1' }}h</strong>
+            </div>
+            <div>
+              <span>Task Filter</span>
+              <strong>{{ selectedTaskStatusLabel }}</strong>
+            </div>
+          </div>
+
+          <div class="task-list" *ngIf="selectedDayEntries.length; else noDayEntries">
+            <article class="task-card" *ngFor="let entry of selectedDayEntries">
+              <div class="task-head">
+                <div>
+                  <p class="task-ticket">{{ entry.ticketId }}</p>
+                  <h4>{{ entry.taskTitle }}</h4>
+                </div>
+                <span class="status-chip {{ entry.status }}">{{ statusLabel(entry.status) }}</span>
+              </div>
+
+              <p class="task-detail">{{ entry.taskDetails }}</p>
+
+              <div class="task-metrics">
+                <div>
+                  <span>Work Hours</span>
+                  <strong>{{ entry.workHours | number: '1.0-1' }}h</strong>
+                </div>
+                <div>
+                  <span>AI Tool</span>
+                  <strong>{{ entry.aiTool }}</strong>
+                </div>
+                <div>
+                  <span>AI Share</span>
+                  <strong>{{ aiShare(entry) }}%</strong>
+                </div>
+              </div>
+
+              <div class="task-note">
+                <mat-icon>auto_awesome</mat-icon>
+                <p>{{ entry.aiUsageSummary }}</p>
+              </div>
+            </article>
+          </div>
+
+          <ng-template #noDayEntries>
+            <div class="empty-state">
+              <mat-icon>event_note</mat-icon>
+              <h4>No tasks for this day</h4>
+              <p>
+                {{
+                  day.state === 'PENDING'
+                    ? 'This working day is still pending timesheet submission.'
+                    : 'No task matches the current task status filter.'
+                }}
+              </p>
+            </div>
+          </ng-template>
+        </article>
+      </section>
+
+      <article class="year-panel panel-card">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow dark">Year Overview</p>
+            <h3>{{ filters.controls.year.value }} Monthly Breakdown</h3>
+          </div>
+        </div>
+
+        <div class="month-list">
+          <button
+            type="button"
+            class="month-row"
+            *ngFor="let month of yearMonthOverviews"
+            [class.active]="filters.controls.month.value === month.monthNumber"
+            (click)="selectMonth(month.monthNumber)"
+          >
+            <div>
+              <strong>{{ month.label }}</strong>
+              <p>{{ month.tasks }} tasks · {{ month.completedTasks }} completed</p>
+            </div>
+            <div class="month-metrics">
+              <span>{{ month.totalHours | number: '1.0-1' }}h</span>
+              <span>{{ month.filledDays }} filled</span>
+              <span>{{ month.pendingDays }} pending</span>
+            </div>
+          </button>
+        </div>
+      </article>
+    </section>
+
+    <ng-template #noSelection>
+      <div class="panel-card empty-state large">
+        <mat-icon>person_search</mat-icon>
+        <h4>Select an employee</h4>
+        <p>Pick any user from the left list to open the professional timesheet overview.</p>
+      </div>
+    </ng-template>
+  </section>
+</section>

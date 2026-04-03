@@ -1,11 +1,12 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, catchError, map, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, map, of, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ARSRequest, MissingType } from '../../shared/models/ars.model';
 import { ApiResponse, PaginatedData } from '../../shared/models/api.model';
 import { RequestStatus } from '../../shared/models/leave.model';
 import { AuthService } from './auth.service';
+import { User } from '../../shared/models/user.model';
 
 interface BackendArsRequest {
   id: string;
@@ -53,7 +54,7 @@ export class ArsService {
       return this.fetchMyRequests().pipe(map((items) => items.filter((item) => item.employeeId === employeeId)));
     }
 
-    const canViewApprovals = current.roles.includes('ADMIN') || current.permissions.includes('APPROVE_ARS');
+    const canViewApprovals = this.canViewApprovals(current);
     const source$ = canViewApprovals ? this.fetchPendingApprovals() : this.fetchMyRequests();
 
     return source$.pipe(map((items) => items.filter((item) => item.employeeId === employeeId)));
@@ -63,7 +64,7 @@ export class ArsService {
     const current = this.authService.getCurrentUserSnapshot();
     if (!current) return of([]);
 
-    const canViewApprovals = current.roles.includes('ADMIN') || current.permissions.includes('APPROVE_ARS');
+    const canViewApprovals = this.canViewApprovals(current);
     if (!canViewApprovals) return of([]);
 
     return this.fetchPendingApprovals().pipe(map((items) => items.filter((item) => item.approverId === approverId)));
@@ -81,7 +82,10 @@ export class ArsService {
         map((response) => this.mapArs(response.data)),
         tap(() => {
           void this.refreshRequestsForCurrentUser().subscribe();
-        })
+        }),
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => new Error(this.resolveApiErrorMessage(error, 'Unable to submit ARS request.')))
+        )
       );
   }
 
@@ -107,7 +111,7 @@ export class ArsService {
       return of([]);
     }
 
-    const canViewApprovals = current.roles.includes('ADMIN') || current.permissions.includes('APPROVE_ARS');
+    const canViewApprovals = this.canViewApprovals(current);
     const source$ = canViewApprovals ? this.fetchPendingApprovals() : this.fetchMyRequests();
 
     return source$.pipe(
@@ -165,5 +169,19 @@ export class ArsService {
     if (type === 'MISSING_PUNCH_IN') return 'MISSING_IN';
     if (type === 'MISSING_PUNCH_OUT') return 'MISSING_OUT';
     return 'BOTH';
+  }
+
+  private canViewApprovals(user: User): boolean {
+    return (
+      user.roles.includes('ADMIN') ||
+      ['APPROVE_ARS', 'MANAGER', 'TEAM_LEAD'].some((permission) => user.permissions.includes(permission as any))
+    );
+  }
+
+  private resolveApiErrorMessage(error: HttpErrorResponse, fallback: string): string {
+    const messageFromApi =
+      (error.error && typeof error.error === 'object' && 'message' in error.error ? (error.error.message as string) : '') || '';
+    const message = messageFromApi || error.message || fallback;
+    return typeof message === 'string' && message.trim() ? message.trim() : fallback;
   }
 }

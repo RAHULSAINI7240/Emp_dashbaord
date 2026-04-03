@@ -64,16 +64,24 @@
         <div class="metrics">
           <div>
             <span><mat-icon>login</mat-icon>Punch In</span>
-            <strong>{{ punchInTime }}</strong>
+            <strong>{{ hasTodayPunchIn ? punchInTime : '--:--' }}</strong>
           </div>
           <div>
             <span><mat-icon>logout</mat-icon>Punch Out</span>
-            <strong>{{ punchOutTime }}</strong>
+            <strong>{{ hasTodayPunchOut ? punchOutTime : '--:--' }}</strong>
           </div>
           <div>
             <span><mat-icon>timer</mat-icon>Working Hours</span>
-            <strong>{{ workingHours }}</strong>
+            <strong>{{ hasTodayPunchIn ? workingHours : '--:--' }}</strong>
           </div>
+        </div>
+
+        <div class="punch-status-strip" *ngIf="!isAdminView">
+          <span class="punch-status-pill" [class.live]="isPunchedIn" [class.done]="hasTodayPunchOut">
+            <mat-icon>{{ punchStatusIcon }}</mat-icon>
+            {{ punchStatusLabel }}
+          </span>
+          <p>{{ punchActionHint }}</p>
         </div>
       </article>
     </div>
@@ -84,8 +92,11 @@
       *ngIf="!isAdminView"
       [class.punched-in]="isPunchedIn"
       [class.punched-out]="!isPunchedIn"
+      [class.day-complete]="hasTodayPunchOut"
     >
-      <span class="swipe-label"><mat-icon>swipe</mat-icon>{{ swipeLabel }}</span>
+      <div class="swipe-copy">
+        <strong>{{ punchActionTitle }}</strong>
+      </div>
       <button
         #swipeKnob
         type="button"
@@ -125,9 +136,10 @@
     <article class="panel-card vscode-card wide-card">
       <div class="vscode-head">
         <div class="vscode-head-copy">
-          <p class="eyebrow"><mat-icon>code</mat-icon>VS Code Work Tracker</p>
-          <h3>Weekly Extension Monitor</h3>
-          <p class="vscode-note">After 1 minute with no editor activity, time is counted as inactive automatically.</p>
+          <p class="eyebrow"><mat-icon>desktop_windows</mat-icon>{{ trackerSourceLabel }}</p>
+          <h3>Weekly Work Tracker</h3>
+          <p class="vscode-note">{{ trackerConnectionLabel }}</p>
+          <p class="vscode-note">{{ trackerConnectionNote }}</p>
         </div>
         <div class="vscode-status-cluster">
           <div class="vscode-status-pill" [class.active]="vscodeStatus.tone === 'active'" [class.idle]="vscodeStatus.tone === 'idle'" [class.inactive]="vscodeStatus.tone === 'inactive'">
@@ -135,6 +147,7 @@
             <span>{{ vscodeStatus.label }}</span>
           </div>
           <p class="vscode-last-seen">Last heartbeat: {{ vscodeLastHeartbeatLabel }}</p>
+          <p class="vscode-last-seen">Source: {{ trackerSourceLabel }}</p>
           <div class="vscode-badge">
             <span>Productivity</span>
             <strong>{{ vscodePrimarySummary?.productivityPercent ?? vscodeSummary?.productivityPercent ?? 0 }}%</strong>
@@ -154,6 +167,10 @@
         <div>
           <span>Month Active</span>
           <strong>{{ vscodeActiveLabel }}</strong>
+        </div>
+        <div>
+          <span>Month Tracked</span>
+          <strong>{{ vscodeTrackedLabel }}</strong>
         </div>
         <div>
           <span>Month Inactive</span>
@@ -220,7 +237,7 @@
         </div>
       </div>
 
-      <p class="empty" *ngIf="vscodeLoading">Loading VS Code activity...</p>
+      <p class="empty" *ngIf="vscodeLoading">Loading tracker activity...</p>
     </article>
 
     <article class="panel-card policy-card">
@@ -454,7 +471,7 @@
         <mat-icon>camera_alt</mat-icon>Face Verification Capture
       </h3>
       <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">
-        {{ cameraCaptureError || 'Camera access is active. Align your face and click capture.' }}
+        {{ cameraCaptureError || 'Camera access is active. Face capture will happen automatically.' }}
       </p>
       <video
         #cameraPreview
@@ -471,14 +488,6 @@
           style="border: 1px solid #cfd8ef; background: #f4f7ff; color: #2b3f73; border-radius: 9px; padding: 0.45rem 0.75rem; cursor: pointer;"
         >
           Cancel
-        </button>
-        <button
-          type="button"
-          (click)="confirmFaceCapture()"
-          [disabled]="cameraCaptureBusy"
-          style="border: 1px solid #1f4ea7; background: #205ec7; color: #fff; border-radius: 9px; padding: 0.45rem 0.75rem; cursor: pointer;"
-        >
-          {{ cameraCaptureBusy ? 'Processing...' : 'Capture & Continue' }}
         </button>
       </div>
     </article>

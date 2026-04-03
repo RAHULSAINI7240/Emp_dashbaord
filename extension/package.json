@@ -45,7 +45,7 @@
       "properties": {
         "autovyn.apiUrl": {
           "type": "string",
-          "default": "http://localhost:3000",
+          "default": "http://localhost:3001",
           "description": "Base URL for the Autovyn backend API."
         },
         "autovyn.idleTimeout": {

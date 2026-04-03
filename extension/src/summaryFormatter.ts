@@ -34,7 +34,7 @@ const toList = (items: string[], fallback: string): string =>
 const buildNarrative = (snapshot: LocalActivitySnapshot, remote?: WorklogSummaryEmployee): string => {
   const productivity = remote?.productivityPercent;
   const editedFiles = snapshot.filesEdited.length;
-  const focusState = snapshot.isFocused ? 'focused in VS Code' : 'running in background';
+  const focusState = snapshot.isFocused ? 'focused in the tracked workspace' : 'running in background';
   const reconnectState = snapshot.needsReconnect ? 'Session needs reconnection before sync can resume.' : 'Session sync is healthy.';
 
   const parts = [
@@ -123,7 +123,7 @@ export const buildSummaryMarkdown = (
 
 export const buildOllamaPrompt = (snapshot: LocalActivitySnapshot, remote?: WorklogSummaryEmployee): string => {
   return [
-    'You are summarizing a software developer activity report from a VS Code extension.',
+    'You are summarizing a software developer activity report from the Autovyn work tracker.',
     'Write a concise, professional summary in 4 to 6 sentences.',
     'Focus on current status, productivity, active vs idle split, files touched, and whether attention is needed.',
     'Do not invent facts that are not present.',

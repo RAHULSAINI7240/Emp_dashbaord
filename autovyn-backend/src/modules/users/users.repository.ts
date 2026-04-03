@@ -82,6 +82,41 @@ export const usersRepository = {
     });
   },
 
+  async listUsers(filter: TeamFilter) {
+    const where: Prisma.UserWhereInput = {
+      isActive: true,
+      ...(filter.city ? { city: { equals: filter.city, mode: 'insensitive' } } : {}),
+      ...(filter.workMode ? { workMode: filter.workMode } : {}),
+      ...(filter.search
+        ? {
+            OR: [
+              { name: { contains: filter.search, mode: 'insensitive' } },
+              { designation: { contains: filter.search, mode: 'insensitive' } },
+              { employeeId: { contains: filter.search, mode: 'insensitive' } },
+              { adminId: { contains: filter.search, mode: 'insensitive' } },
+              { email: { contains: filter.search, mode: 'insensitive' } }
+            ]
+          }
+        : {})
+    };
+
+    const [rows, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip: filter.skip,
+        take: filter.take,
+        orderBy: [{ name: 'asc' }],
+        include: {
+          manager: { select: { id: true, name: true, employeeId: true, designation: true } },
+          teamMembers: { select: { id: true, name: true, employeeId: true, designation: true } }
+        }
+      }),
+      prisma.user.count({ where })
+    ]);
+
+    return { rows, total };
+  },
+
   async listTeamMembers(filter: TeamFilter) {
     const where: Prisma.UserWhereInput = {
       isActive: true,

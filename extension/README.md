@@ -2,6 +2,8 @@
 
 Autovyn_treacar is a VS Code extension that authenticates Autovyn employees, tracks development activity inside the editor, and periodically sends analytics data to the Autovyn backend for dashboard reporting.
 
+This is the current tracker client in the repo. The same worklog API can also power a future installable desktop tracker for Windows, Ubuntu, and macOS.
+
 Marketplace note: VS Code extension package names cannot contain underscores, so the publishable identifier is `autovyn.autovyn-treacar` while the visible product name remains `Autovyn_treacar`.
 
 ## Features
@@ -41,14 +43,14 @@ Expected heartbeat payload:
   "durationSeconds": 60,
   "recordedAt": "2026-03-09T09:15:00.000Z",
   "deviceId": "vscode-machine-id",
-  "editor": "vscode",
+  "editor": "vscode-extension",
   "isFocused": true
 }
 ```
 
 ## Settings
 
-- `autovyn.apiUrl`: base URL for the backend API. Default: `http://localhost:3000`
+- `autovyn.apiUrl`: base URL for the backend API. Default: `http://localhost:3001`
 - `autovyn.idleTimeout`: idle timeout in seconds. Default: `60`
 - `autovyn.summaryProvider`: `local` or `ollama`. Default: `local`
 - `autovyn.ollamaUrl`: local Ollama generate endpoint. Default: `http://127.0.0.1:11434/api/generate`

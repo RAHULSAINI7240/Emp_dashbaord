@@ -1,14 +1,17 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { ActivatedRoute } from '@angular/router';
-import { Subscription, combineLatest, map } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription, combineLatest, firstValueFrom, map } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/services/auth.service';
+import { AttendanceService } from '../../../core/services/attendance.service';
 import { LeaveService } from '../../../core/services/leave.service';
 import { PunchAuditService } from '../../../core/services/punch-audit.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { WorklogService } from '../../../core/services/worklog.service';
+import { AttendanceDay } from '../../../shared/models/attendance.model';
 import { FaceScanType, PunchAuditLog } from '../../../shared/models/punch-audit.model';
 import { User } from '../../../shared/models/user.model';
 import { WorklogEmployeeSummary, WorklogSummary } from '../../../shared/models/worklog.model';
@@ -120,8 +123,8 @@ type FaceDetectorCtor = new (options?: { fastMode?: boolean; maxDetectedFaces?: 
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
-export class DashboardComponent implements AfterViewInit, OnDestroy {
-  private readonly vscodeRefreshIntervalMs = 15_000;
+export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
+  private readonly vscodeRefreshIntervalMs = 10_000;
   @ViewChild('swipeTrack') swipeTrack?: ElementRef<HTMLElement>;
   @ViewChild('swipeKnob') swipeKnob?: ElementRef<HTMLElement>;
   @ViewChild('cameraPreview') cameraPreview?: ElementRef<HTMLVideoElement>;
@@ -181,6 +184,9 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
   private readonly subscriptions = new Subscription();
   private currentLeaderboardRank = 1;
   private vscodeRefreshHandle: ReturnType<typeof setInterval> | null = null;
+  private clockHandle: ReturnType<typeof setInterval> | null = null;
+  private worklogStreamAbortController: AbortController | null = null;
+  private worklogStreamReconnectHandle: ReturnType<typeof setTimeout> | null = null;
 
   get aiSnapshot() {
     return this.aiAnalyticsService.snapshot;
@@ -279,9 +285,19 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
     return this.calendarDays.find((day) => day.date === this.selectedCalendarDate) ?? null;
   }
 
+  get hasTodayPunchIn(): boolean {
+    return !!this.getTodayAttendanceLog()?.punchIn;
+  }
+
+  get hasTodayPunchOut(): boolean {
+    return !!this.getTodayAttendanceLog()?.punchOut;
+  }
+
   constructor(
     private readonly route: ActivatedRoute,
+    private readonly router: Router,
     public readonly authService: AuthService,
+    private readonly attendanceService: AttendanceService,
     private readonly leaveService: LeaveService,
     private readonly punchAuditService: PunchAuditService,
     private readonly toastService: ToastService,
@@ -315,8 +331,15 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
     this.syncAuditLogs();
     this.monthlyWorkedDays = this.monthlyCompletedLogs.length;
     this.loadLeaveData();
+    void this.loadEmployeeAttendanceData();
     this.syncPremiumAnalytics();
     this.initializeVsCodeWorklogSummary();
+  }
+
+  ngOnInit(): void {
+    this.clockHandle = setInterval(() => {
+      this.now = new Date();
+    }, 1000);
   }
 
   ngAfterViewInit(): void {
@@ -328,9 +351,21 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.clockHandle) {
+      clearInterval(this.clockHandle);
+      this.clockHandle = null;
+    }
     if (this.vscodeRefreshHandle) {
       clearInterval(this.vscodeRefreshHandle);
       this.vscodeRefreshHandle = null;
+    }
+    if (this.worklogStreamReconnectHandle) {
+      clearTimeout(this.worklogStreamReconnectHandle);
+      this.worklogStreamReconnectHandle = null;
+    }
+    if (this.worklogStreamAbortController) {
+      this.worklogStreamAbortController.abort();
+      this.worklogStreamAbortController = null;
     }
     this.closeCameraCapture();
     this.stopLiveLocationTracking();
@@ -348,6 +383,30 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
       return 'Attendance completed for today. You can punch in again tomorrow.';
     }
     return this.isPunchedIn ? 'Swipe left to Punch Out' : 'Swipe right to Punch In (face + location check)';
+  }
+
+  get punchStatusLabel(): string {
+    if (this.hasTodayPunchOut) return 'Attendance completed';
+    if (this.isPunchedIn) return 'Currently punched in';
+    return 'Ready for punch in';
+  }
+
+  get punchStatusIcon(): string {
+    if (this.hasTodayPunchOut) return 'task_alt';
+    if (this.isPunchedIn) return 'radio_button_checked';
+    return 'schedule';
+  }
+
+  get punchActionTitle(): string {
+    if (this.hasTodayPunchOut) return 'Attendance Completed';
+    return this.isPunchedIn ? '<- Swipe to Punch Out' : 'Swipe to Punch In ->';
+  }
+
+  get punchActionHint(): string {
+    if (this.hasTodayPunchOut) {
+      return 'Today punch in and punch out are already recorded.';
+    }
+    return this.isPunchedIn ? 'Swipe left to finish work.' : 'Swipe right to start punch in.';
   }
 
   get greetingMessage(): string {
@@ -512,15 +571,16 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
   }
 
   get workingHours(): string {
-    if (!this.punchInTime || !this.punchOutTime || this.punchOutTime === '--:--') return '--:--';
-    const inDate = this.parseTime(this.punchInTime);
-    const outDate = this.parseTime(this.punchOutTime);
-    if (!inDate || !outDate) return '--:--';
-    const diffMs = outDate.getTime() - inDate.getTime();
-    if (diffMs <= 0) return '--:--';
-    const hours = Math.floor(diffMs / 3600000);
-    const mins = Math.floor((diffMs % 3600000) / 60000);
-    return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+    const todayLog = this.getTodayAttendanceLog();
+    if (!todayLog?.punchIn) return '--:--';
+    const inDate = new Date(todayLog.punchIn);
+    if (Number.isNaN(inDate.getTime())) return '--:--';
+
+    const outDate = todayLog.punchOut ? new Date(todayLog.punchOut) : this.now;
+    if (Number.isNaN(outDate.getTime())) return '--:--';
+
+    const diffSeconds = Math.max(0, Math.floor((outDate.getTime() - inDate.getTime()) / 1000));
+    return this.secondsToHHMM(diffSeconds);
   }
 
   get vscodeActiveLabel(): string {
@@ -580,11 +640,41 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  get trackerSourceLabel(): string {
+    return this.formatTrackerSource(this.vscodePrimarySummary?.lastHeartbeatEditor);
+  }
+
+  get trackerConnectionLabel(): string {
+    const source = this.trackerSourceLabel;
+    const liveStatus = this.vscodePrimarySummary?.liveStatus;
+
+    if (!this.vscodePrimarySummary || !liveStatus || liveStatus === 'OFFLINE') {
+      return `${source} Offline`;
+    }
+
+    if (liveStatus === 'IDLE') {
+      return `${source} Idle`;
+    }
+
+    return `${source} Connected`;
+  }
+
+  get trackerConnectionNote(): string {
+    const liveStatus = this.vscodePrimarySummary?.liveStatus;
+    const source = this.trackerSourceLabel;
+
+    if (!this.vscodePrimarySummary || !liveStatus || liveStatus === 'OFFLINE') {
+      return `No fresh heartbeat is coming from the ${source.toLowerCase()} right now.`;
+    }
+
+    return `Live tracking data from the ${source.toLowerCase()} is syncing to the dashboard and being stored for future reports.`;
+  }
+
   get vscodeStatus(): { label: string; icon: string; tone: 'active' | 'inactive' | 'idle' } {
     const liveStatus = this.vscodePrimarySummary?.liveStatus;
     if (!this.vscodePrimarySummary || liveStatus === 'OFFLINE' || !liveStatus) {
       return {
-        label: 'Extension Inactive',
+        label: 'Tracker Offline',
         icon: 'power_off',
         tone: 'inactive'
       };
@@ -592,14 +682,14 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
 
     if (liveStatus === 'IDLE') {
       return {
-        label: 'Extension Idle',
+        label: 'Tracker Idle',
         icon: 'pause_circle',
         tone: 'idle'
       };
     }
 
     return {
-      label: 'Extension Active',
+      label: 'Tracker Active',
       icon: 'radio_button_checked',
       tone: 'active'
     };
@@ -624,16 +714,18 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
 
   get vscodeSmartSummaries(): WorklogSmartSummary[] {
     const status = this.vscodeStatus;
+    const trackerSource = this.trackerSourceLabel;
+    const trackerSourceLower = trackerSource.toLowerCase();
 
     if (status.tone === 'inactive') {
       return [
         {
-          icon: 'extension_off',
-          text: 'VS Code extension is offline for this employee. Ask them to open VS Code and log in to the extension so live tracking starts.'
+          icon: 'desktop_access_disabled',
+          text: `${trackerSource} is offline for this employee. Ask them to sign in on their tracker so live tracking starts again.`
         },
         {
           icon: 'visibility_off',
-          text: 'Until fresh heartbeats arrive from the extension, the dashboard will keep this employee in inactive status.'
+          text: `Until fresh heartbeats arrive from the ${trackerSourceLower}, the dashboard will keep this employee in inactive status.`
         }
       ];
     }
@@ -648,13 +740,13 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
 
     const idleLine =
       this.vscodeIdleRatio >= 35
-        ? `Idle share is ${this.vscodeIdleRatio}%, which suggests long breaks or unfocused editor time.`
+        ? `Idle share is ${this.vscodeIdleRatio}%, which suggests long breaks or unfocused tracked time.`
         : `Idle share is ${this.vscodeIdleRatio}%, which is within a healthy focus range.`;
 
     return [
       {
         icon: 'auto_awesome',
-        text: `${trendLine} Average tracked time this week is ${this.vscodeWeekAverageLabel}.`
+        text: `${trendLine} Average tracked time this week is ${this.vscodeWeekAverageLabel}. Total tracked this month is ${this.vscodeTrackedLabel}.`
       },
       {
         icon: 'psychology',
@@ -817,8 +909,10 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
       this.toastService.show('Admin view is read-only. Punch actions are disabled.', 'info');
       return false;
     }
+    if (!this.ensureAuthenticatedSession()) {
+      return false;
+    }
     this.workStatusService.markActivity();
-    const nowTime = this.formatNow();
     const now = new Date();
     const todayLog = this.attendanceLogs.find((item) => item.date === this.dateKey(now));
 
@@ -827,7 +921,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
         this.toastService.show('Punch-in already recorded for today. You can punch in again tomorrow.', 'info');
         return false;
       }
-      const [faceEvidence, location] = await Promise.all([this.captureFaceEvidence(), this.captureLocation(true)]);
+      const faceEvidence = await this.captureFaceEvidence();
       if (!faceEvidence.verified) {
         this.faceCheckStatus = 'Face not detected in camera frame';
         this.toastService.show('Face not detected. Punch in blocked.', 'error');
@@ -837,21 +931,30 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
         this.toastService.show('Photo capture is mandatory for punch in.', 'error');
         return false;
       }
+
+      const location = await this.captureLocation(true);
       if (!location) {
         this.toastService.show('Location access is required for punch in.', 'error');
         return false;
       }
 
-      this.isPunchedIn = true;
-      this.punchInTime = nowTime;
-      this.punchOutTime = '--:--';
-      this.faceCheckStatus = `Verified (${this.scanTypeLabel(faceEvidence.scanType)}) at ${nowTime}`;
-      this.facePreviewPhotoUrl = faceEvidence.photoDataUrl ?? '';
-      this.lastPunchLocationLabel = this.formatLocation(location, this.mode.value);
-      this.currentLocationLabel = this.formatLocation(location, this.mode.value);
-      this.upsertPunchInLog(now, location, faceEvidence);
-      this.startLiveLocationTracking();
-      this.toastService.show('Punched In successfully', 'success');
+      try {
+        const attendanceDay = await firstValueFrom(this.attendanceService.punchIn());
+        const punchInAt = attendanceDay.punchInUtc ? new Date(attendanceDay.punchInUtc) : now;
+        this.isPunchedIn = true;
+        this.punchInTime = this.isoTimeLabel(punchInAt.toISOString());
+        this.punchOutTime = '--:--';
+        this.faceCheckStatus = `Verified (${this.scanTypeLabel(faceEvidence.scanType)}) at ${this.punchInTime}`;
+        this.facePreviewPhotoUrl = faceEvidence.photoDataUrl ?? '';
+        this.lastPunchLocationLabel = this.formatLocation(location, this.mode.value);
+        this.currentLocationLabel = this.formatLocation(location, this.mode.value);
+        this.upsertPunchInLog(punchInAt, location, faceEvidence);
+        this.startLiveLocationTracking();
+        this.toastService.show('Punched In successfully', 'success');
+      } catch (error) {
+        this.toastService.show(this.resolvePunchError(error, 'Unable to punch in.'), 'error');
+        return false;
+      }
     } else {
       if (!todayLog?.punchIn || !!todayLog?.punchOut) {
         this.toastService.show('Punch-out is only allowed once after today punch-in.', 'info');
@@ -859,20 +962,29 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
         return false;
       }
       const location = await this.captureLocation(false);
-      this.isPunchedIn = false;
-      this.punchOutTime = nowTime;
-      this.upsertPunchOutLog(now, location);
-      this.stopLiveLocationTracking();
-      if (location) {
-        const today = this.attendanceLogs.find((item) => item.date === this.dateKey(now));
-        this.lastPunchLocationLabel = this.formatLocation(location, today?.workMode ?? this.mode.value);
+      try {
+        const attendanceDay = await firstValueFrom(this.attendanceService.punchOut());
+        const punchOutAt = attendanceDay.punchOutUtc ? new Date(attendanceDay.punchOutUtc) : now;
+        this.isPunchedIn = false;
+        this.punchOutTime = this.isoTimeLabel(punchOutAt.toISOString());
+        this.upsertPunchOutLog(punchOutAt, location);
+        this.stopLiveLocationTracking();
+        this.currentLocationLabel = 'Location tracking starts after punch in';
+        if (location) {
+          const today = this.attendanceLogs.find((item) => item.date === this.dateKey(now));
+          this.lastPunchLocationLabel = this.formatLocation(location, today?.workMode ?? this.mode.value);
+        }
+        this.toastService.show('Punched Out successfully', 'info');
+      } catch (error) {
+        this.toastService.show(this.resolvePunchError(error, 'Unable to punch out.'), 'error');
+        return false;
       }
-      this.toastService.show('Punched Out successfully', 'info');
     }
     this.persistState();
     this.persistLogs();
     this.monthlyWorkedDays = this.monthlyCompletedLogs.length;
     this.syncAuditLog(this.dateKey(now));
+    await this.loadEmployeeAttendanceData();
     this.syncCalendarMonths();
     this.syncPremiumAnalytics();
     return true;
@@ -1069,11 +1181,6 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  private parseTime(time: string): Date | null {
-    const date = new Date(`1970-01-01 ${time}`);
-    return Number.isNaN(date.getTime()) ? null : date;
-  }
-
   private lateByMinutes(date: Date): number {
     const cutoff = new Date(date);
     cutoff.setHours(9, 50, 0, 0);
@@ -1163,7 +1270,9 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
   }
 
   private async captureLocation(required: boolean): Promise<PunchLocation | null> {
-    if (!navigator.geolocation) return null;
+    if (!navigator.geolocation) {
+      return required ? this.developmentLocationFallback() : null;
+    }
     return new Promise((resolve) => {
       navigator.geolocation.getCurrentPosition(
         (position) =>
@@ -1173,18 +1282,29 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
             accuracy: position.coords.accuracy,
             capturedAt: new Date().toISOString()
           }),
-        () => resolve(null),
+        () => resolve(required ? this.developmentLocationFallback() : null),
         { enableHighAccuracy: true, maximumAge: 0, timeout: required ? 9000 : 7000 }
       );
     });
   }
 
   private async captureFaceEvidence(): Promise<FaceCaptureEvidence> {
+    const developmentFallback = this.developmentFaceFallback();
+    if (developmentFallback && this.shouldBypassBrowserCameraCapture()) {
+      return developmentFallback;
+    }
+
     if (!navigator.mediaDevices?.getUserMedia) {
+      if (developmentFallback) return developmentFallback;
       this.toastService.show('Camera access is not available on this browser.', 'error');
       return { verified: false, scanType: 'CAMERA_ONLY' };
     }
-    return this.captureFaceFromDialog();
+
+    const evidence = await this.captureFaceFromDialog();
+    if (evidence.verified && evidence.photoDataUrl) {
+      return evidence;
+    }
+    return developmentFallback ?? evidence;
   }
 
   async confirmFaceCapture(): Promise<void> {
@@ -1217,10 +1337,16 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
         video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
       });
       await this.bindCameraStream();
-      this.cameraCaptureError = '';
-      return await new Promise<FaceCaptureEvidence>((resolve) => {
-        this.pendingFaceCaptureResolve = resolve;
-      });
+      this.cameraCaptureError = 'Capturing face automatically...';
+      await this.delay(280);
+      const video = this.cameraPreview?.nativeElement;
+      if (!video) {
+        this.closeCameraCapture();
+        return { verified: false, scanType: 'CAMERA_ONLY' };
+      }
+      const evidence = await this.extractFaceEvidence(video);
+      this.closeCameraCapture();
+      return evidence;
     } catch {
       this.closeCameraCapture();
       return { verified: false, scanType: 'CAMERA_ONLY' };
@@ -1263,8 +1389,20 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
     try {
       const detector = new FaceDetectorApi({ fastMode: true, maxDetectedFaces: 1 });
       const faces = await detector.detect(canvas);
-      return { verified: faces.length > 0, scanType: 'FACE_DETECTOR', photoDataUrl };
+      if (faces.length > 0) {
+        return { verified: true, scanType: 'FACE_DETECTOR', photoDataUrl };
+      }
+
+      if (!environment.production) {
+        return { verified: true, scanType: 'CAMERA_ONLY', photoDataUrl };
+      }
+
+      return { verified: false, scanType: 'CAMERA_ONLY', photoDataUrl };
     } catch {
+      if (!environment.production) {
+        return { verified: true, scanType: 'CAMERA_ONLY', photoDataUrl };
+      }
+
       return { verified: false, scanType: 'CAMERA_ONLY', photoDataUrl };
     }
   }
@@ -1287,6 +1425,71 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
       video.pause();
       video.srcObject = null;
     }
+  }
+
+  private ensureAuthenticatedSession(): boolean {
+    if (this.authService.getSession()?.token) {
+      return true;
+    }
+
+    this.toastService.show('Session expired. Please login again.', 'error');
+    void this.router.navigateByUrl('/auth/login');
+    return false;
+  }
+
+  private developmentLocationFallback(): PunchLocation | null {
+    if (!this.canUseDevelopmentPunchFallback()) {
+      return null;
+    }
+
+    this.toastService.show('Using simulated location for LAN development.', 'info');
+    const anchor =
+      this.mode.value === 'HOME'
+        ? { lat: this.officeAnchor.lat + 0.018, lng: this.officeAnchor.lng + 0.021 }
+        : this.officeAnchor;
+
+    return {
+      lat: anchor.lat,
+      lng: anchor.lng,
+      accuracy: 25,
+      capturedAt: new Date().toISOString()
+    };
+  }
+
+  private developmentFaceFallback(): FaceCaptureEvidence | null {
+    if (!this.canUseDevelopmentPunchFallback()) {
+      return null;
+    }
+
+    this.toastService.show('Using simulated camera verification for LAN development.', 'info');
+    return {
+      verified: true,
+      scanType: 'SIMULATED',
+      photoDataUrl: this.createDevelopmentFacePhotoDataUrl()
+    };
+  }
+
+  private canUseDevelopmentPunchFallback(): boolean {
+    return !environment.production && !globalThis.isSecureContext;
+  }
+
+  private shouldBypassBrowserCameraCapture(): boolean {
+    return this.canUseDevelopmentPunchFallback();
+  }
+
+  private createDevelopmentFacePhotoDataUrl(): string {
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240">
+        <rect width="320" height="240" fill="#e8eefc"/>
+        <circle cx="160" cy="92" r="42" fill="#7a8fb8"/>
+        <rect x="92" y="148" width="136" height="54" rx="27" fill="#7a8fb8"/>
+        <text x="160" y="222" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#2f3d5c">
+          LAN DEV FACE CHECK
+        </text>
+      </svg>
+    `;
+
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   }
 
   private startLiveLocationTracking(): void {
@@ -1316,13 +1519,16 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
   }
 
   private refreshLocationSummaries(): void {
+    this.currentLocationLabel = this.isPunchedIn ? 'Acquiring live location...' : 'Location tracking starts after punch in';
     const latest = [...this.attendanceLogs]
       .reverse()
       .find((log) => !!log.outLocation || !!log.inLocation);
     const location = latest?.outLocation || latest?.inLocation;
     if (location) {
       this.lastPunchLocationLabel = this.formatLocation(location, latest?.workMode ?? 'OFFICE');
+      return;
     }
+    this.lastPunchLocationLabel = 'No punch location captured yet';
   }
 
   private formatLocation(location: PunchLocation, mode: 'OFFICE' | 'HOME'): string {
@@ -1390,6 +1596,97 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
     );
   }
 
+  private async loadEmployeeAttendanceData(): Promise<void> {
+    if (this.isAdminView) return;
+
+    const currentUser = this.authService.getCurrentUserSnapshot();
+    if (!currentUser) return;
+
+    try {
+      const [days, auditLogs] = await Promise.all([
+        firstValueFrom(this.attendanceService.getAttendance(currentUser.id)),
+        firstValueFrom(
+          this.punchAuditService.getAllLogs().pipe(map((logs) => logs.filter((log) => log.employeeId === currentUser.id)))
+        )
+      ]);
+
+      this.attendanceLogs = this.mergeAttendanceLogs(days, auditLogs);
+      this.monthlyWorkedDays = this.monthlyCompletedLogs.length;
+      this.applyLatestAttendanceSnapshot();
+      this.refreshLocationSummaries();
+      this.syncCalendarMonths();
+      this.syncPremiumAnalytics();
+      this.persistLogs();
+
+      if (this.viewMode === 'attendance') {
+        this.setMaxSwipe();
+      }
+
+      if (this.isPunchedIn) {
+        this.startLiveLocationTracking();
+      } else {
+        this.stopLiveLocationTracking();
+      }
+    } catch {
+      // Keep the current local state if backend sync fails.
+    }
+  }
+
+  private mergeAttendanceLogs(days: AttendanceDay[], auditLogs: PunchAuditLog[]): AttendanceLog[] {
+    const auditMap = new Map(auditLogs.map((log) => [log.date, this.mapAuditLogToAttendance(log)]));
+    const merged = new Map<string, AttendanceLog>();
+
+    days.forEach((day) => {
+      const log = this.mapAttendanceDayToLog(day, auditMap.get(day.date));
+      if (log) {
+        merged.set(day.date, log);
+      }
+    });
+
+    auditMap.forEach((log, date) => {
+      if (!merged.has(date)) {
+        merged.set(date, log);
+      }
+    });
+
+    return Array.from(merged.values())
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-90);
+  }
+
+  private mapAttendanceDayToLog(day: AttendanceDay, auditLog?: AttendanceLog): AttendanceLog | null {
+    const punchIn = day.punchInUtc ?? auditLog?.punchIn;
+    const punchOut = day.punchOutUtc ?? auditLog?.punchOut;
+
+    if (!punchIn && !punchOut && !auditLog) {
+      return null;
+    }
+
+    return {
+      date: day.date,
+      punchIn,
+      punchOut,
+      workMode: auditLog?.workMode ?? 'OFFICE',
+      workMinutes:
+        day.workingMinutes ??
+        auditLog?.workMinutes ??
+        (punchIn && punchOut ? this.minutesBetween(punchIn, punchOut) : 0),
+      lateByMinutes: auditLog?.lateByMinutes ?? (punchIn ? this.lateByMinutes(new Date(punchIn)) : 0),
+      inLocation: auditLog?.inLocation,
+      outLocation: auditLog?.outLocation,
+      faceVerified: auditLog?.faceVerified ?? false,
+      faceScanType: auditLog?.faceScanType ?? 'SIMULATED',
+      punchInPhoto: auditLog?.punchInPhoto
+    };
+  }
+
+  private resolvePunchError(error: unknown, fallback: string): string {
+    if (error instanceof Error && error.message.trim()) {
+      return error.message.trim();
+    }
+    return fallback;
+  }
+
   private loadLeaveData(): void {
     const employeeId = this.isAdminView ? this.viewedEmployeeId : this.authService.getCurrentUserSnapshot()?.id;
     if (!employeeId) return;
@@ -1408,6 +1705,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
 
   private initializeVsCodeWorklogSummary(): void {
     this.loadVsCodeWorklogSummary();
+    this.initializeWorklogLiveStream();
     this.vscodeRefreshHandle = setInterval(() => {
       this.loadVsCodeWorklogSummary();
     }, this.vscodeRefreshIntervalMs);
@@ -1429,6 +1727,64 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
         this.vscodeLoading = false;
       })
     );
+  }
+
+  private initializeWorklogLiveStream(): void {
+    if (this.isAdminView || typeof window === 'undefined') {
+      return;
+    }
+
+    if (this.worklogStreamReconnectHandle) {
+      clearTimeout(this.worklogStreamReconnectHandle);
+      this.worklogStreamReconnectHandle = null;
+    }
+
+    if (this.worklogStreamAbortController) {
+      this.worklogStreamAbortController.abort();
+    }
+
+    const controller = new AbortController();
+    this.worklogStreamAbortController = controller;
+
+    void this.worklogService
+      .connectLiveStream(() => {
+        this.loadVsCodeWorklogSummary();
+      }, controller.signal)
+      .catch(() => {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        this.worklogStreamReconnectHandle = setTimeout(() => {
+          this.worklogStreamReconnectHandle = null;
+          this.initializeWorklogLiveStream();
+        }, 2000);
+      });
+  }
+
+  private formatTrackerSource(source: string | null | undefined): string {
+    const normalized = source?.trim().toLowerCase();
+    if (!normalized) {
+      return 'Work tracker';
+    }
+
+    if (normalized === 'vscode' || normalized === 'vscode-extension') {
+      return 'VS Code extension';
+    }
+
+    if (normalized === 'desktop-agent' || normalized === 'desktop-app' || normalized === 'desktop-tracker') {
+      return 'Desktop tracker app';
+    }
+
+    if (normalized === 'browser' || normalized === 'web') {
+      return 'Browser tracker';
+    }
+
+    return normalized
+      .split(/[-_\s]+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
   }
 
   private organizationModeCounts(): Record<'WFO' | 'WFH' | 'HYBRID', number> {
@@ -1555,42 +1911,35 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
   }
 
   private applyLatestAttendanceSnapshot(): void {
+    const todayLog = this.getTodayAttendanceLog();
+    if (!todayLog) {
+      this.resetTodayAttendanceSnapshot();
+      return;
+    }
+
+    this.punchInTime = todayLog.punchIn ? this.isoTimeLabel(todayLog.punchIn) : '--:--';
+    this.punchOutTime = todayLog.punchOut ? this.isoTimeLabel(todayLog.punchOut) : '--:--';
+    this.faceCheckStatus = todayLog.faceVerified ? `Verified (${this.scanTypeLabel(todayLog.faceScanType)})` : 'Face not verified today';
+    this.facePreviewPhotoUrl = todayLog.punchInPhoto ?? '';
+    this.isPunchedIn = !!todayLog.punchIn && !todayLog.punchOut;
+    this.currentLocationLabel =
+      this.isPunchedIn && todayLog.inLocation
+        ? this.formatLocation(todayLog.inLocation, todayLog.workMode)
+        : 'Location tracking starts after punch in';
+  }
+
+  private getTodayAttendanceLog(): AttendanceLog | null {
     const todayKey = this.dateKey(new Date());
-    const todayLog = this.attendanceLogs.find((item) => item.date === todayKey);
-    if (todayLog) {
-      this.punchInTime = todayLog.punchIn ? this.isoTimeLabel(todayLog.punchIn) : '--:--';
-      this.punchOutTime = todayLog.punchOut ? this.isoTimeLabel(todayLog.punchOut) : '--:--';
-      this.faceCheckStatus = todayLog.faceVerified
-        ? `Verified (${this.scanTypeLabel(todayLog.faceScanType)})`
-        : 'Face not verified today';
-      this.facePreviewPhotoUrl = todayLog.punchInPhoto ?? '';
-      this.isPunchedIn = !!todayLog.punchIn && !todayLog.punchOut;
-      return;
-    }
+    return this.attendanceLogs.find((item) => item.date === todayKey) ?? null;
+  }
 
-    const latest = [...this.attendanceLogs].sort((a, b) => b.date.localeCompare(a.date))[0];
-    if (!latest) {
-      this.punchInTime = '--:--';
-      this.punchOutTime = '--:--';
-      this.faceCheckStatus = 'Face not verified today';
-      this.isPunchedIn = false;
-      return;
-    }
-
-    this.punchInTime = latest.punchIn ? this.isoTimeLabel(latest.punchIn) : '--:--';
-    this.punchOutTime = latest.punchOut ? this.isoTimeLabel(latest.punchOut) : '--:--';
-    this.faceCheckStatus = latest.faceVerified
-      ? `Verified (${this.scanTypeLabel(latest.faceScanType)})`
-      : 'Face not verified today';
-    this.facePreviewPhotoUrl = latest.punchInPhoto ?? '';
+  private resetTodayAttendanceSnapshot(): void {
+    this.punchInTime = '--:--';
+    this.punchOutTime = '--:--';
+    this.faceCheckStatus = 'Face not verified today';
+    this.facePreviewPhotoUrl = '';
+    this.currentLocationLabel = 'Location tracking starts after punch in';
     this.isPunchedIn = false;
-
-    if (latest.outLocation || latest.inLocation) {
-      const refLocation = latest.outLocation ?? latest.inLocation;
-      if (refLocation) {
-        this.lastPunchLocationLabel = this.formatLocation(refLocation, latest.workMode);
-      }
-    }
   }
 
   private isoTimeLabel(iso: string): string {

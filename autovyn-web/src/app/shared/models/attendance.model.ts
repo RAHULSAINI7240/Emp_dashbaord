@@ -15,6 +15,9 @@ export interface AttendanceDay {
   status: AttendanceStatus;
   punchIn?: string;
   punchOut?: string;
+  punchInUtc?: string;
+  punchOutUtc?: string;
+  workingMinutes?: number;
   workingHours?: string;
   holidayName?: string;
   holidayImageUrl?: string;

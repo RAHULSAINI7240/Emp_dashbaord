@@ -420,7 +420,7 @@ export class ActivityTracker implements vscode.Disposable {
         durationSeconds,
         recordedAt,
         deviceId: vscode.env.machineId,
-        editor: 'vscode',
+        editor: 'vscode-extension',
         isFocused: this.state.isWindowFocused
       });
       remainingMs -= durationSeconds * 1000;

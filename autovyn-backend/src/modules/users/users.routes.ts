@@ -3,7 +3,13 @@ import { authenticate } from '../../middleware/auth.middleware';
 import { requireAnyPermission } from '../../middleware/rbac.middleware';
 import { validate } from '../../middleware/validate.middleware';
 import { usersController } from './users.controller';
-import { approverQuerySchema, createUserSchema, listTeamMembersQuerySchema, updateMyProfilePhotoSchema } from './users.schema';
+import {
+  approverQuerySchema,
+  createUserSchema,
+  listTeamMembersQuerySchema,
+  listUsersQuerySchema,
+  updateMyProfilePhotoSchema
+} from './users.schema';
 import { z } from 'zod';
 import { objectIdSchema } from '../../utils/object-id';
 
@@ -15,6 +21,7 @@ router.post('/users', validate(createUserSchema), usersController.create);
 router.get('/users/me', usersController.me);
 router.patch('/users/me/photo', validate(updateMyProfilePhotoSchema), usersController.updateMyProfilePhoto);
 router.get('/users/approvers', validate(approverQuerySchema, 'query'), usersController.approvers);
+router.get('/users', requireAnyPermission('VIEW_TEAM'), validate(listUsersQuerySchema, 'query'), usersController.listUsers);
 
 router.get('/team/members', requireAnyPermission('VIEW_TEAM'), validate(listTeamMembersQuerySchema, 'query'), usersController.listTeamMembers);
 router.get('/team/member/:id', validate(z.object({ id: objectIdSchema }), 'params'), usersController.getTeamMember);
