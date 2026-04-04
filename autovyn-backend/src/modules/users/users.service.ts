@@ -4,6 +4,7 @@ import { getPagination, buildPaginationMeta } from '../../utils/pagination';
 import { hashPassword, isStrongPassword } from '../../utils/password';
 import { usersRepository } from './users.repository';
 import { dateKeyToUtcDate, formatUtcDateToKey, getDateKeyFromOffset, isWeekend } from '../../utils/date-time';
+import { defaultPermissionsByRole } from '../../utils/user-defaults';
 
 interface CreateUserPayload {
   employeeId?: string;
@@ -36,26 +37,6 @@ interface AuthContext {
 }
 
 const VYN_CODE_REGEX = /^VYN(\d+)$/i;
-
-const defaultPermissionsByRole = (role: Role): Permission[] => {
-  if (role === Role.ADMIN) {
-    return [
-      Permission.APPROVE_LEAVE,
-      Permission.APPROVE_ARS,
-      Permission.VIEW_TEAM,
-      Permission.MANAGE_EMPLOYEES,
-      Permission.CREATE_USER,
-      Permission.MANAGER,
-      Permission.TEAM_LEAD
-    ];
-  }
-
-  if (role === Role.HR) {
-    return [Permission.CREATE_USER, Permission.VIEW_TEAM];
-  }
-
-  return [Permission.VIEW_TEAM];
-};
 
 const JOINING_DATE_PASSWORD_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 

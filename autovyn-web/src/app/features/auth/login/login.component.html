@@ -24,9 +24,9 @@
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
         <mat-form-field appearance="outline" class="line-field">
-          <mat-label>Login Id</mat-label>
+          <mat-label>Login ID</mat-label>
           <mat-icon matPrefix>badge</mat-icon>
-          <input matInput formControlName="userId" placeholder="Enter VYN ID" autocomplete="username" />
+          <input matInput formControlName="userId" placeholder="Enter login ID like VYN01 or EMP1001" autocomplete="username" />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="line-field line-muted">
@@ -52,7 +52,10 @@
 
         <div class="login-note">
           <mat-icon>verified_user</mat-icon>
-          <span>Your access opens the correct dashboard automatically based on role.</span>
+          <span>
+            Use your assigned password to sign in. For users created from this app, the default password is the
+            joining date in <code>YYYY-MM-DD</code> format. Seeded/imported users may use IDs like <code>EMP1001</code>.
+          </span>
         </div>
 
         <button class="cta login-cta" type="submit" [disabled]="submitting">

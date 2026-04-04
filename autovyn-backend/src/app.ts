@@ -3,15 +3,25 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import routes from './routes';
-import { corsOrigins, env } from './config/env';
+import { corsOrigins, env, trustProxy } from './config/env';
 import { timezoneMiddleware } from './middleware/timezone.middleware';
 import { notFoundMiddleware } from './middleware/not-found.middleware';
 import { errorMiddleware } from './middleware/error.middleware';
+import { AppError } from './utils/app-error';
 
 export const app = express();
 
 app.disable('x-powered-by');
+app.set('trust proxy', trustProxy);
 app.use(helmet());
+
+const normalizeOrigin = (origin: string): string => {
+  try {
+    return new URL(origin).origin;
+  } catch {
+    return origin.trim().replace(/\/+$/, '');
+  }
+};
 
 const isPrivateIpv4Hostname = (hostname: string): boolean => {
   if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) return false;
@@ -55,11 +65,16 @@ const isAllowedDevelopmentOrigin = (origin: string): boolean => {
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || corsOrigins.includes(origin) || isAllowedDevelopmentOrigin(origin)) {
+      const normalizedOrigin = origin ? normalizeOrigin(origin) : origin;
+      if (!normalizedOrigin || corsOrigins.includes(normalizedOrigin) || isAllowedDevelopmentOrigin(normalizedOrigin)) {
         callback(null, true);
         return;
       }
-      callback(new Error('Not allowed by CORS'));
+      callback(
+        new AppError('Origin not allowed by CORS.', 403, 'CORS_ORIGIN_NOT_ALLOWED', {
+          origin: normalizedOrigin
+        })
+      );
     },
     credentials: false
   })

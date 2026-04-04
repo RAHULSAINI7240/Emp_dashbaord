@@ -84,9 +84,13 @@ Important values:
 - `JWT_REFRESH_SECRET`
 - `ARS_APPROVER_MODE=ADMIN|MANAGER|AUTO`
 - `CORS_ORIGIN=http://localhost:4200`
+- `TRUST_PROXY=1` when deployed behind Render/reverse proxies so rate limiting uses the real client IP
+- `BOOTSTRAP_CORE_USERS=true` on Render if you want startup-created Admin/HR/Manager accounts without running `db:seed`
+- Optional live demo login: set `DEMO_LOGIN_ID` and `DEMO_PASSWORD` on Render to auto-create/refresh a known account at startup
 
 ## Seed Users
 - `npm run db:seed` imports the bundled dummy CSV at `prisma/data/dummy-autovyn-users.csv`.
+- It also creates fixed local testing accounts: `VYN01`, `VYN02`, and `VYN03`.
 - Employee login uses the CSV `EmployeeID` values such as `EMP1001`.
 - Passwords come from the CSV `UserPassword` column by default.
 
@@ -192,6 +196,32 @@ Error:
 curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"loginId":"EMP1001","password":"2016-02-19"}'
+```
+
+### Render startup users
+If your Render service does not run `npm run db:seed`, use these environment variables so the backend auto-creates your main login accounts on startup:
+```env
+TRUST_PROXY=1
+BOOTSTRAP_CORE_USERS=true
+BOOTSTRAP_ADMIN_LOGIN_ID=VYN01
+BOOTSTRAP_ADMIN_PASSWORD=Admin@123
+BOOTSTRAP_HR_LOGIN_ID=VYN02
+BOOTSTRAP_HR_PASSWORD=Hr@12345
+BOOTSTRAP_MANAGER_LOGIN_ID=VYN03
+BOOTSTRAP_MANAGER_PASSWORD=Manager@123
+```
+
+### Render demo login
+For one extra live demo user, set these environment variables in Render, redeploy, then log in with the configured credentials:
+```env
+TRUST_PROXY=1
+DEMO_LOGIN_ID=DEMO01
+DEMO_PASSWORD=Demo@12345
+DEMO_ROLE=ADMIN
+DEMO_NAME=Autovyn Demo
+DEMO_DESIGNATION=Administrator
+DEMO_CITY=Remote
+DEMO_WORK_MODE=WFO
 ```
 
 ### Import users with one known password

@@ -1,6 +1,7 @@
 import { app } from './app';
 import { env } from './config/env';
 import { prisma } from './db/prisma';
+import { bootstrapStartupUsers } from './bootstrap/demo-user';
 
 let server: ReturnType<typeof app.listen>;
 let isShuttingDown = false;
@@ -58,6 +59,7 @@ const start = async (): Promise<void> => {
   try {
     await prisma.$connect();
     console.log('Connected to database.');
+    await bootstrapStartupUsers();
 
     server = app.listen(env.PORT, () => {
       console.log(`Autovyn backend listening on port ${env.PORT}`);
