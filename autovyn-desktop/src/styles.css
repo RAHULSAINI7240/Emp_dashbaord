@@ -59,6 +59,27 @@ body {
   line-height: 1.6;
 }
 
+.hero-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.hero-highlights span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(53, 192, 138, 0.12);
+  border: 1px solid rgba(53, 192, 138, 0.22);
+  color: #d8fff0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 .card {
   margin-bottom: 18px;
   padding: 20px;

@@ -1,6 +1,6 @@
-# Autovyn Agent
+# Autovyn Desktop
 
-Autovyn Agent is the installable desktop tracker for Autovyn employees.
+Autovyn Desktop is the installable desktop app for Autovyn employees.
 
 It is designed to:
 
@@ -83,6 +83,12 @@ Users can still change the API URL later from the settings screen inside the app
 
 The source code folder is not needed on the employee system. Only the installed desktop app is needed.
 
+Preferred packaged filenames:
+
+- Windows: `Autovyn-Desktop-Setup.exe`
+- macOS: `Autovyn-Desktop.dmg`
+- Linux: `Autovyn-Desktop.AppImage` or `Autovyn-Desktop.deb`
+
 ## Platform Note
 
 For the smoothest packaging results, build each installer on its target operating system:
@@ -97,4 +103,4 @@ For the smoothest packaging results, build each installer on its target operatin
 - The desktop app accepts either `http://localhost:3001` or `http://localhost:3001/api` and normalizes both correctly
 - Heartbeats are sent with `editor: "desktop-agent"` so the current dashboard can distinguish this source from the old VS Code extension
 - Closing the window hides the app instead of stopping tracking
-- Use the tray menu or the logout button to stop the agent manually
+- Use the tray menu or the logout button to stop the desktop app manually

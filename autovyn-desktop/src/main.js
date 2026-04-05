@@ -95,12 +95,12 @@ app.whenReady().then(() => {
           enabled: false
         },
         {
-          label: snapshot.loggedIn ? `User: ${snapshot.user.employeeId || snapshot.user.name}` : 'User: Not signed in',
+          label: snapshot.loggedIn ? `User: ${snapshot.user.employeeId || snapshot.user.adminId || snapshot.user.name}` : 'User: Not signed in',
           enabled: false
         },
         { type: 'separator' },
         {
-          label: 'Open Autovyn Agent',
+          label: 'Open Autovyn Desktop',
           click: () => {
             if (mainWindow) {
               mainWindow.show();
@@ -164,7 +164,7 @@ app.whenReady().then(() => {
     return true;
   });
 
-  if (!tracker.getSnapshot().loggedIn) {
+  if (tracker.shouldShowWindowOnLaunch()) {
     mainWindow.show();
   }
 

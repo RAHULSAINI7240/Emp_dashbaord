@@ -12,8 +12,7 @@ const elements = {
   settingsForm: document.getElementById('settingsForm'),
   loginButton: document.getElementById('loginButton'),
   logoutButton: document.getElementById('logoutButton'),
-  apiBaseUrl: document.getElementById('apiBaseUrl'),
-  employeeId: document.getElementById('employeeId'),
+  loginId: document.getElementById('loginId'),
   password: document.getElementById('password'),
   settingsApiBaseUrl: document.getElementById('settingsApiBaseUrl'),
   idleTimeoutSeconds: document.getElementById('idleTimeoutSeconds'),
@@ -58,7 +57,6 @@ const render = (state) => {
   elements.loginCard.classList.toggle('hidden', loggedIn);
   elements.statusCard.classList.toggle('hidden', !loggedIn);
 
-  elements.apiBaseUrl.value = settings.apiBaseUrl || getDefaultApiBaseUrl();
   elements.settingsApiBaseUrl.value = settings.apiBaseUrl || getDefaultApiBaseUrl();
   elements.idleTimeoutSeconds.value = String(settings.idleTimeoutSeconds || 60);
   elements.launchAtLogin.checked = Boolean(settings.launchAtLogin);
@@ -69,8 +67,8 @@ const render = (state) => {
   elements.syncPill.dataset.state = String(state.syncState || 'SIGNED_OUT').toLowerCase();
 
   elements.statusSubtitle.textContent = loggedIn
-    ? `Logged in as ${user.name || user.employeeId || 'Employee'} and tracking in the background.`
-    : 'Sign in to start the background agent.';
+    ? `Logged in as ${user.name || user.employeeId || 'Employee'} and tracking from the desktop app in the background.`
+    : 'Sign in to start the desktop app and background tracking.';
   elements.trackedValue.textContent = toDuration(state.trackedSeconds);
   elements.activeValue.textContent = toDuration(state.activeSeconds);
   elements.idleValue.textContent = toDuration(state.idleSeconds);
@@ -108,13 +106,12 @@ elements.loginForm.addEventListener('submit', async (event) => {
 
   try {
     const state = await window.autovynAgent.login({
-      apiBaseUrl: elements.apiBaseUrl.value,
-      employeeId: elements.employeeId.value,
+      loginId: elements.loginId.value,
       password: elements.password.value
     });
     elements.password.value = '';
     render(state);
-    showMessage('Login successful. The desktop agent is now tracking in the background.', 'success');
+    showMessage('Login successful. Autovyn Desktop is now tracking in the background and can launch on startup.', 'success');
   } catch (error) {
     showMessage(error && error.message ? error.message : 'Login failed.', 'danger');
   } finally {
@@ -128,7 +125,7 @@ elements.logoutButton.addEventListener('click', async () => {
   try {
     const state = await window.autovynAgent.logout();
     render(state);
-    showMessage('Logged out. Background tracking has stopped.', 'info');
+    showMessage('Logged out. The desktop app has stopped tracking in the background.', 'info');
   } catch (error) {
     showMessage(error && error.message ? error.message : 'Logout failed.', 'danger');
   }

@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Install Autovyn Desktop</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f7fb;
+        --panel: rgba(255, 255, 255, 0.92);
+        --panel-strong: #ffffff;
+        --text: #12263f;
+        --muted: #5d718a;
+        --line: #d6e0ec;
+        --primary: #1656c1;
+        --primary-strong: #0e3b8c;
+        --accent: #0f9d73;
+        --warning: #a86b17;
+        --success: #177c5d;
+        --shadow: 0 26px 64px rgba(17, 45, 84, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Aptos", "Trebuchet MS", "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(22, 86, 193, 0.15), transparent 28%),
+          radial-gradient(circle at bottom right, rgba(15, 157, 115, 0.12), transparent 26%),
+          linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .shell {
+        width: min(1160px, calc(100% - 2rem));
+        margin: 0 auto;
+        padding: 2rem 0 3rem;
+      }
+
+      .hero,
+      .step,
+      .platform-card,
+      .footer-note {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(12px);
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.85fr);
+        gap: 1.25rem;
+        padding: 1.4rem;
+        border-radius: 30px;
+      }
+
+      .eyebrow,
+      .mini-label {
+        margin: 0;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow {
+        color: var(--primary);
+      }
+
+      .hero h1 {
+        margin: 0.55rem 0 0;
+        font-size: clamp(2.25rem, 4vw, 3.4rem);
+        line-height: 1.02;
+      }
+
+      .hero-copy > p,
+      .step p,
+      .platform-card p,
+      .footer-note,
+      .login-panel p,
+      .recommended-card p {
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .hero-text {
+        margin: 1rem 0 0;
+        max-width: 44rem;
+        font-size: 1rem;
+      }
+
+      .feature-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.7rem;
+        margin-top: 1.1rem;
+      }
+
+      .feature-pills span,
+      .platform-badge,
+      .login-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.25rem;
+        padding: 0 0.85rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+      }
+
+      .feature-pills span {
+        background: rgba(22, 86, 193, 0.08);
+        border: 1px solid rgba(22, 86, 193, 0.12);
+        color: var(--primary-strong);
+      }
+
+      .login-panel {
+        margin-top: 1.25rem;
+        padding: 1rem 1.05rem;
+        border-radius: 22px;
+        background: linear-gradient(135deg, rgba(14, 59, 140, 0.98), rgba(22, 86, 193, 0.9));
+        color: #fff;
+      }
+
+      .login-panel p,
+      .login-panel small {
+        color: rgba(255, 255, 255, 0.86);
+      }
+
+      .login-chip {
+        background: rgba(255, 255, 255, 0.14);
+      }
+
+      .login-credentials {
+        margin-top: 0.9rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+      }
+
+      .login-id {
+        font-size: 1.2rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+
+      .recommended-card {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.15rem;
+        border-radius: 24px;
+        background:
+          linear-gradient(180deg, rgba(14, 59, 140, 0.04), rgba(255, 255, 255, 0.9)),
+          var(--panel-strong);
+        border: 1px solid rgba(22, 86, 193, 0.14);
+      }
+
+      .mini-label {
+        color: var(--accent);
+      }
+
+      .recommended-card h2 {
+        margin: 0.5rem 0 0;
+        font-size: 1.7rem;
+        line-height: 1.15;
+      }
+
+      .recommended-meta {
+        display: grid;
+        gap: 0.8rem;
+      }
+
+      .copy-button,
+      .primary-download,
+      .download-link {
+        appearance: none;
+        border: 1px solid transparent;
+        border-radius: 16px;
+        font: inherit;
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+      }
+
+      .copy-button {
+        padding: 0.82rem 1rem;
+        background: #fff;
+        color: var(--primary-strong);
+      }
+
+      .primary-download,
+      .download-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
+      }
+
+      .primary-download {
+        width: 100%;
+        min-height: 3.2rem;
+        padding: 0.9rem 1rem;
+        color: #fff;
+        background: linear-gradient(135deg, var(--primary-strong), var(--primary));
+        box-shadow: 0 16px 30px rgba(22, 86, 193, 0.22);
+      }
+
+      .download-link {
+        width: 100%;
+        margin-top: 1rem;
+        padding: 0.92rem 1rem;
+        color: #fff;
+        background: linear-gradient(135deg, #154ea9, #1c68d2);
+        box-shadow: 0 14px 28px rgba(28, 104, 210, 0.18);
+      }
+
+      .copy-button:hover,
+      .primary-download:hover,
+      .download-link:hover {
+        transform: translateY(-1px);
+      }
+
+      .primary-download[aria-disabled="true"],
+      .download-link[aria-disabled="true"] {
+        pointer-events: none;
+        color: #91a2b9;
+        background: #edf2f8;
+        box-shadow: none;
+        border-color: var(--line);
+      }
+
+      .status {
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+
+      .status.ready {
+        color: var(--success);
+      }
+
+      .status.waiting {
+        color: var(--warning);
+      }
+
+      .steps,
+      .platforms {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.25rem;
+      }
+
+      .steps {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .step,
+      .platform-card {
+        border-radius: 24px;
+        padding: 1.1rem;
+      }
+
+      .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.2rem;
+        height: 2.2rem;
+        border-radius: 999px;
+        background: rgba(22, 86, 193, 0.1);
+        color: var(--primary);
+        font-size: 0.95rem;
+        font-weight: 800;
+      }
+
+      .step h2,
+      .platform-card h2 {
+        margin: 0.8rem 0 0.35rem;
+        font-size: 1.08rem;
+      }
+
+      .platforms {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .platform-card {
+        position: relative;
+      }
+
+      .platform-card.is-recommended {
+        border-color: rgba(15, 157, 115, 0.3);
+        box-shadow: 0 28px 56px rgba(15, 157, 115, 0.12);
+      }
+
+      .platform-badge {
+        background: rgba(22, 86, 193, 0.08);
+        color: var(--primary);
+      }
+
+      .platform-note {
+        min-height: 3.3rem;
+      }
+
+      .footer-note {
+        margin-top: 1.25rem;
+        padding: 1rem 1.05rem;
+        border-radius: 22px;
+      }
+
+      code {
+        padding: 0.12rem 0.35rem;
+        border-radius: 8px;
+        background: rgba(14, 59, 140, 0.07);
+        color: var(--primary-strong);
+      }
+
+      @media (max-width: 960px) {
+        .hero {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 860px) {
+        .steps,
+        .platforms {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Autovyn Desktop App</p>
+          <h1>Install Autovyn on your desktop like a normal app.</h1>
+          <p class="hero-text">
+            Download the installer for your computer, finish setup once, then sign in with your employee credentials.
+            After that, Autovyn Desktop can launch on startup, stay in the tray or menu bar, and keep syncing your
+            work tracking in the background.
+          </p>
+
+          <div class="feature-pills">
+            <span>Installable desktop app</span>
+            <span>Launches on startup</span>
+            <span>Runs in background tray</span>
+          </div>
+
+          <section class="login-panel" id="loginPanel" hidden>
+            <span class="login-chip">Login hint</span>
+            <div class="login-credentials">
+              <div>
+                <small>Employee ID</small>
+                <div class="login-id" id="employeeIdValue">-</div>
+              </div>
+              <button class="copy-button" id="copyEmployeeIdButton" type="button">Copy Employee ID</button>
+            </div>
+            <p id="employeeNameLine" style="margin: 0.75rem 0 0;"></p>
+            <p style="margin: 0.35rem 0 0;">Use the same password you use in the employee dashboard.</p>
+          </section>
+        </div>
+
+        <aside class="recommended-card">
+          <div class="recommended-meta">
+            <div>
+              <p class="mini-label">Recommended Installer</p>
+              <h2 id="recommendedTitle">Checking your operating system...</h2>
+            </div>
+            <p id="recommendedText">
+              Choose the installer that matches your desktop. Once installed, you can open the app from the desktop,
+              Start menu, Applications folder, or launcher like any normal desktop app.
+            </p>
+            <div class="status waiting" id="recommendedStatus">Checking if the recommended installer is published...</div>
+          </div>
+
+          <a class="primary-download" id="recommendedLink" aria-disabled="true" href="#">Preparing installer...</a>
+          <p style="margin: 0;">
+            If this device is shared or you want a different package, you can still use the platform cards below.
+          </p>
+        </aside>
+      </section>
+
+      <section class="steps">
+        <article class="step">
+          <span class="step-number">1</span>
+          <h2>Download the installer</h2>
+          <p>Pick the Windows, macOS, or Linux package that matches the computer where the tracker should be installed.</p>
+        </article>
+        <article class="step">
+          <span class="step-number">2</span>
+          <h2>Install it like a desktop app</h2>
+          <p>
+            Open the downloaded file, finish the setup wizard, and let your operating system complete any permission
+            prompt. On Linux, prefer the <code>.deb</code> package when available. If you use the <code>.AppImage</code>,
+            you may need to allow it to run as a program first.
+          </p>
+        </article>
+        <article class="step">
+          <span class="step-number">3</span>
+          <h2>Sign in once and let it start automatically</h2>
+          <p>After your first sign-in, the app can launch when the system starts and continue working quietly in the tray.</p>
+        </article>
+      </section>
+
+      <section class="platforms">
+        <article
+          class="platform-card"
+          data-release-card
+          data-platform="windows"
+          data-urls="/downloads/windows/Autovyn-Desktop-Setup.exe|/downloads/windows/Autovyn-Agent-Setup.exe"
+        >
+          <span class="platform-badge">Windows</span>
+          <h2>Installer (.exe)</h2>
+          <p class="platform-note">Best for office desktops and laptops. Installs like a standard Windows app with Start menu access.</p>
+          <div class="status waiting" data-status>Checking if this installer is published...</div>
+          <a class="download-link" data-link aria-disabled="true" href="#">Installer not published yet</a>
+        </article>
+
+        <article
+          class="platform-card"
+          data-release-card
+          data-platform="macos"
+          data-urls="/downloads/macos/Autovyn-Desktop.dmg|/downloads/macos/Autovyn-Agent.dmg"
+        >
+          <span class="platform-badge">macOS</span>
+          <h2>Disk image (.dmg)</h2>
+          <p class="platform-note">For Mac devices where the tracker should feel like a normal installed app in the dock and menu bar.</p>
+          <div class="status waiting" data-status>Checking if this installer is published...</div>
+          <a class="download-link" data-link aria-disabled="true" href="#">Installer not published yet</a>
+        </article>
+
+        <article
+          class="platform-card"
+          data-release-card
+          data-platform="linux"
+          data-urls="/downloads/linux/Autovyn-Desktop.deb|/downloads/linux/Autovyn-Agent.deb|/downloads/linux/Autovyn-Desktop.AppImage|/downloads/linux/Autovyn-Agent.AppImage"
+        >
+          <span class="platform-badge">Linux</span>
+          <h2>Package (.deb) or portable app (.AppImage)</h2>
+          <p class="platform-note">
+            Ubuntu and Debian users should prefer the <code>.deb</code> installer. If you use the
+            <code>.AppImage</code>, Linux may ask you to allow executing the file before it opens.
+          </p>
+          <div class="status waiting" data-status>Checking if this installer is published...</div>
+          <a class="download-link" data-link aria-disabled="true" href="#">Installer not published yet</a>
+        </article>
+      </section>
+
+      <section class="footer-note">
+        <strong>Publishing note:</strong>
+        Preferred installer paths are <code>/downloads/windows/Autovyn-Desktop-Setup.exe</code>,
+        <code>/downloads/macos/Autovyn-Desktop.dmg</code>, <code>/downloads/linux/Autovyn-Desktop.deb</code>, and
+        <code>/downloads/linux/Autovyn-Desktop.AppImage</code>. This page also supports the older
+        <code>Autovyn-Agent</code> filenames if they are already published.
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const employeeId = (params.get('employeeId') || '').trim();
+        const employeeName = (params.get('employeeName') || '').trim();
+
+        const loginPanel = document.getElementById('loginPanel');
+        const employeeIdValue = document.getElementById('employeeIdValue');
+        const employeeNameLine = document.getElementById('employeeNameLine');
+        const copyEmployeeIdButton = document.getElementById('copyEmployeeIdButton');
+
+        if (employeeId && loginPanel && employeeIdValue) {
+          loginPanel.hidden = false;
+          employeeIdValue.textContent = employeeId;
+
+          if (employeeNameLine) {
+            employeeNameLine.textContent = employeeName
+              ? 'Signed in as ' + employeeName + '.'
+              : 'Use this ID in the desktop app login screen.';
+          }
+
+          if (copyEmployeeIdButton) {
+            copyEmployeeIdButton.addEventListener('click', async function () {
+              try {
+                await navigator.clipboard.writeText(employeeId);
+                copyEmployeeIdButton.textContent = 'Employee ID Copied';
+              } catch (error) {
+                copyEmployeeIdButton.textContent = 'Copy Failed';
+              }
+            });
+          }
+        }
+
+        const recommendedTitle = document.getElementById('recommendedTitle');
+        const recommendedText = document.getElementById('recommendedText');
+        const recommendedStatus = document.getElementById('recommendedStatus');
+        const recommendedLink = document.getElementById('recommendedLink');
+
+        const platformLabels = {
+          windows: 'Windows',
+          macos: 'macOS',
+          linux: 'Linux'
+        };
+
+        const releaseCards = Array.from(document.querySelectorAll('[data-release-card]'));
+        const releaseState = {};
+
+        function getLowerUrl(url) {
+          return String(url || '').trim().toLowerCase();
+        }
+
+        function isLinuxAppImage(url) {
+          return getLowerUrl(url).endsWith('.appimage');
+        }
+
+        function isLinuxDeb(url) {
+          return getLowerUrl(url).endsWith('.deb');
+        }
+
+        function buildStatusMessage(platform, url) {
+          if (platform === 'linux' && isLinuxDeb(url)) {
+            return 'Linux package is live and ready to install.';
+          }
+
+          if (platform === 'linux' && isLinuxAppImage(url)) {
+            return 'AppImage is live. If it does not open, allow executing the file as a program first.';
+          }
+
+          return 'Installer is live and ready to download.';
+        }
+
+        function buildRecommendedText(platform, detectedPlatform, url) {
+          if (platform === 'linux' && isLinuxDeb(url)) {
+            return detectedPlatform
+              ? 'We detected Linux on this device. Download the .deb package, install it once, and then sign in to let the app keep running in the background.'
+              : 'Choose the installer that matches your desktop. On Linux, prefer the .deb package when it is available.';
+          }
+
+          if (platform === 'linux' && isLinuxAppImage(url)) {
+            return detectedPlatform
+              ? 'We detected Linux on this device. Download the AppImage, then if Linux blocks it, allow executing the file and open it again before signing in.'
+              : 'Choose the installer that matches your desktop. If you use the Linux AppImage, you may need to allow it to run as a program first.';
+          }
+
+          return detectedPlatform
+            ? 'We detected ' + (platformLabels[platform] || 'Desktop') + ' on this device. Download the installer below, install it once, and then sign in to let the app keep running in the background.'
+            : 'Choose the installer that matches your desktop. After installation, open the app once and sign in with your employee credentials.';
+        }
+
+        function setLinkState(link, url, enabledLabel, disabledLabel) {
+          if (!link) {
+            return;
+          }
+
+          if (url) {
+            link.setAttribute('href', url);
+            link.setAttribute('download', '');
+            link.setAttribute('aria-disabled', 'false');
+            link.textContent = enabledLabel;
+            return;
+          }
+
+          link.setAttribute('href', '#');
+          link.removeAttribute('download');
+          link.setAttribute('aria-disabled', 'true');
+          link.textContent = disabledLabel;
+        }
+
+        function detectPlatform() {
+          const platformValue = String(
+            (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent || ''
+          ).toLowerCase();
+
+          if (platformValue.indexOf('win') !== -1) {
+            return 'windows';
+          }
+
+          if (platformValue.indexOf('mac') !== -1) {
+            return 'macos';
+          }
+
+          if (platformValue.indexOf('linux') !== -1 || platformValue.indexOf('x11') !== -1) {
+            return 'linux';
+          }
+
+          return null;
+        }
+
+        async function resolvePublishedUrl(candidateUrls) {
+          for (const candidateUrl of candidateUrls) {
+            try {
+              const response = await fetch(candidateUrl, { method: 'HEAD', cache: 'no-store' });
+              if (response.ok) {
+                return candidateUrl;
+              }
+            } catch (error) {
+              // Ignore and continue to the next candidate.
+            }
+          }
+
+          return null;
+        }
+
+        function configureRecommendedPanel() {
+          const detectedPlatform = detectPlatform();
+          const chosenPlatform = detectedPlatform && releaseState[detectedPlatform] ? detectedPlatform : 'windows';
+          const state = releaseState[chosenPlatform];
+          const readablePlatform = platformLabels[chosenPlatform] || 'Desktop';
+
+          releaseCards.forEach(function (card) {
+            card.classList.toggle('is-recommended', card.getAttribute('data-platform') === chosenPlatform);
+          });
+
+          if (!recommendedTitle || !recommendedText || !recommendedStatus || !recommendedLink || !state) {
+            return;
+          }
+
+          recommendedTitle.textContent = readablePlatform + ' desktop app';
+          recommendedText.textContent = buildRecommendedText(chosenPlatform, detectedPlatform, state.url);
+
+          if (state.url) {
+            recommendedStatus.textContent =
+              chosenPlatform === 'linux' ? buildStatusMessage(chosenPlatform, state.url) : readablePlatform + ' installer is live and ready to install.';
+            recommendedStatus.className = 'status ready';
+            setLinkState(recommendedLink, state.url, 'Download ' + readablePlatform + ' Installer', 'Preparing installer...');
+            return;
+          }
+
+          recommendedStatus.textContent = readablePlatform + ' installer is not published at this path yet.';
+          recommendedStatus.className = 'status waiting';
+          setLinkState(recommendedLink, null, 'Download ' + readablePlatform + ' Installer', 'Installer not published yet');
+        }
+
+        Promise.all(
+          releaseCards.map(async function (card) {
+            const platform = card.getAttribute('data-platform');
+            const status = card.querySelector('[data-status]');
+            const link = card.querySelector('[data-link]');
+            const urls = String(card.getAttribute('data-urls') || '')
+              .split('|')
+              .map(function (value) {
+                return value.trim();
+              })
+              .filter(Boolean);
+
+            if (!platform || !status || !link || !urls.length) {
+              return;
+            }
+
+            const publishedUrl = await resolvePublishedUrl(urls);
+            releaseState[platform] = { url: publishedUrl };
+
+            if (publishedUrl) {
+              status.textContent = buildStatusMessage(platform, publishedUrl);
+              status.className = 'status ready';
+              setLinkState(link, publishedUrl, 'Download Now', 'Installer not published yet');
+              return;
+            }
+
+            status.textContent = 'Installer is not published at this path yet.';
+            status.className = 'status waiting';
+            setLinkState(link, null, 'Download Now', 'Installer not published yet');
+          })
+        ).finally(configureRecommendedPanel);
+      })();
+    </script>
+  </body>
+</html>

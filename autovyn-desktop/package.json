@@ -1,7 +1,7 @@
 {
-  "name": "autovyn-desktop-agent",
+  "name": "autovyn-desktop",
   "version": "0.1.0",
-  "description": "Installable background desktop agent for Autovyn employee time tracking.",
+  "description": "Installable Autovyn desktop app for employee time tracking.",
   "main": "src/main.js",
   "license": "UNLICENSED",
   "private": true,
@@ -11,7 +11,9 @@
     "check": "node scripts/check-syntax.js",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "dist:linux:appimage": "electron-builder --linux AppImage"
+    "dist:linux:appimage": "electron-builder --linux AppImage",
+    "publish:installers": "node scripts/publish-installers.js",
+    "dist:publish": "npm run dist && npm run publish:installers"
   },
   "engines": {
     "node": ">=18.19"
@@ -27,7 +29,7 @@
   },
   "build": {
     "appId": "com.autovyn.agent",
-    "productName": "Autovyn Agent",
+    "productName": "Autovyn Desktop",
     "asar": true,
     "directories": {
       "output": "dist",
@@ -50,13 +52,15 @@
           ]
         }
       ],
-      "icon": "assets/icon.png"
+      "icon": "assets/icon.png",
+      "artifactName": "Autovyn-Desktop-Setup.${ext}"
     },
     "mac": {
       "target": [
         "dmg"
       ],
       "icon": "assets/icon.png",
+      "artifactName": "Autovyn-Desktop.${ext}",
       "category": "public.app-category.productivity"
     },
     "linux": {
@@ -66,6 +70,7 @@
       ],
       "maintainer": "Autovyn Engineering <engineering@autovyn.local>",
       "icon": "assets/icon.png",
+      "artifactName": "Autovyn-Desktop.${ext}",
       "category": "Office"
     },
     "nsis": {

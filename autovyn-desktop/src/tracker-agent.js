@@ -315,10 +315,24 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
     try {
       app.setLoginItemSettings({
         openAtLogin: Boolean(enabled),
-        openAsHidden: true
+        openAsHidden: true,
+        args: ['--autostart']
       });
     } catch {
       // Ignore unsupported platforms during local development.
+    }
+  };
+
+  const wasOpenedFromStartup = () => {
+    if (process.argv.includes('--autostart') || process.argv.includes('--hidden')) {
+      return true;
+    }
+
+    try {
+      const loginItemSettings = app.getLoginItemSettings();
+      return Boolean(loginItemSettings.wasOpenedAtLogin || loginItemSettings.wasOpenedAsHidden);
+    } catch {
+      return false;
     }
   };
 
@@ -370,13 +384,13 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
       }
     },
 
-    async login({ employeeId, password, apiBaseUrl }) {
+    async login({ loginId, password, apiBaseUrl }) {
       if (apiBaseUrl) {
         settings.apiBaseUrl = normalizeApiBaseUrl(apiBaseUrl);
       }
 
-      const normalizedEmployeeId = String(employeeId || '').trim().toUpperCase();
-      const response = await api.loginEmployee(normalizedEmployeeId, password);
+      const normalizedLoginId = String(loginId || '').trim().toUpperCase();
+      const response = await api.login(normalizedLoginId, password);
       session = {
         accessToken: response.accessToken,
         refreshToken: response.refreshToken,
@@ -427,6 +441,7 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
     },
 
     getSnapshot,
+    shouldShowWindowOnLaunch: () => !session || !wasOpenedFromStartup(),
     flush
   };
 };

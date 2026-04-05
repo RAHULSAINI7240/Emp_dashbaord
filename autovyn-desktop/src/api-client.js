@@ -91,11 +91,11 @@ const request = async (baseUrl, endpoint, options = {}) => {
 const createApiClient = (getBaseUrl) => ({
   normalizeApiBaseUrl,
 
-  async loginEmployee(employeeId, password) {
-    return request(getBaseUrl(), '/api/auth/login/employee', {
+  async login(loginId, password) {
+    return request(getBaseUrl(), '/api/auth/login', {
       method: 'POST',
       body: {
-        employeeId,
+        loginId,
         password
       }
     });
