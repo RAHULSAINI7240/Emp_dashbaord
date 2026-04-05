@@ -14,6 +14,10 @@
 # Packaged artifacts
 **/*.vsix
 **/*.deb
+.codex
+autovyn-web/public/downloads/**/*.AppImage
+autovyn-web/public/downloads/**/*.dmg
+autovyn-web/public/downloads/**/*.exe
 
 # Logs and system files
 **/npm-debug.log*
