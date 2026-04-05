@@ -670,6 +670,19 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
     return `Live tracking data from the ${source.toLowerCase()} is syncing to the dashboard and being stored for future reports.`;
   }
 
+  get agentLoginId(): string {
+    const user = this.authService.getCurrentUserSnapshot();
+    return user?.employeeId?.trim() || user?.adminId?.trim() || '';
+  }
+
+  get agentLoginHint(): string {
+    if (this.agentLoginId) {
+      return `Install it once, then sign in with ${this.agentLoginId} and your current password. After that it can launch automatically when your system starts.`;
+    }
+
+    return 'Install it once, then sign in with your employee ID and current password. After that it can launch automatically when your system starts.';
+  }
+
   get vscodeStatus(): { label: string; icon: string; tone: 'active' | 'inactive' | 'idle' } {
     const liveStatus = this.vscodePrimarySummary?.liveStatus;
     if (!this.vscodePrimarySummary || liveStatus === 'OFFLINE' || !liveStatus) {
@@ -850,6 +863,44 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
 
   gaugeStyle(percent: number, color: string): string {
     return `conic-gradient(${color} 0 ${percent}%, #e4e9f6 ${percent}% 100%)`;
+  }
+
+  downloadDesktopAgent(): void {
+    const targetUrl = this.resolveDesktopAgentDownloadUrl();
+    if (!targetUrl) {
+      this.toastService.show('Desktop app download is not configured yet.', 'error');
+      return;
+    }
+
+    if (this.agentLoginId && targetUrl.pathname.toLowerCase().endsWith('.html')) {
+      targetUrl.searchParams.set('employeeId', this.agentLoginId);
+      const employeeName = this.authService.getCurrentUserSnapshot()?.name?.trim();
+      if (employeeName) {
+        targetUrl.searchParams.set('employeeName', employeeName);
+      }
+    }
+
+    const opened = window.open(targetUrl.toString(), '_blank', 'noopener,noreferrer');
+    if (!opened) {
+      window.location.href = targetUrl.toString();
+    }
+
+    this.toastService.show('Open the installer, finish setup, then sign in to the desktop app.', 'info');
+  }
+
+  copyAgentLoginId(): void {
+    if (!this.agentLoginId) {
+      this.toastService.show('Employee ID is not available for this account.', 'error');
+      return;
+    }
+
+    const copied = this.tryClipboardCopy(this.agentLoginId);
+    if (!copied) {
+      this.toastService.show('Unable to copy employee ID.', 'error');
+      return;
+    }
+
+    this.toastService.show('Employee ID copied.', 'success');
   }
 
   startSwipe(event: PointerEvent): void {
@@ -1785,6 +1836,37 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
       .filter(Boolean)
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
       .join(' ');
+  }
+
+  private resolveDesktopAgentDownloadUrl(): URL | null {
+    const value = String(environment.desktopAgentDownloadUrl || '').trim();
+    if (!value) {
+      return null;
+    }
+
+    try {
+      return new URL(value, window.location.origin);
+    } catch {
+      return null;
+    }
+  }
+
+  private tryClipboardCopy(value: string): boolean {
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(value);
+      return true;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = value;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const copied = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    return copied;
   }
 
   private organizationModeCounts(): Record<'WFO' | 'WFH' | 'HYBRID', number> {

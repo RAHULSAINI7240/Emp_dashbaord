@@ -140,6 +140,22 @@
           <h3>Weekly Work Tracker</h3>
           <p class="vscode-note">{{ trackerConnectionLabel }}</p>
           <p class="vscode-note">{{ trackerConnectionNote }}</p>
+          <div class="agent-download-card" *ngIf="!isAdminView">
+            <p class="agent-download-eyebrow"><mat-icon>download</mat-icon>Desktop App</p>
+            <h4>Install the tracker as a desktop app</h4>
+            <p class="agent-download-note">{{ agentLoginHint }}</p>
+            <div class="agent-download-actions">
+              <button type="button" class="agent-download-button primary" (click)="downloadDesktopAgent()">
+                <mat-icon>download_for_offline</mat-icon>
+                Download App
+              </button>
+              <button type="button" class="agent-download-button secondary" (click)="copyAgentLoginId()" [disabled]="!agentLoginId">
+                <mat-icon>badge</mat-icon>
+                Copy Employee ID
+              </button>
+            </div>
+            <p class="agent-download-helper">It installs like a normal desktop app, can launch on startup, and keeps running in the tray after sign-in.</p>
+          </div>
         </div>
         <div class="vscode-status-cluster">
           <div class="vscode-status-pill" [class.active]="vscodeStatus.tone === 'active'" [class.idle]="vscodeStatus.tone === 'idle'" [class.inactive]="vscodeStatus.tone === 'inactive'">

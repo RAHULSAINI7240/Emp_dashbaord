@@ -1,4 +1,5 @@
 export const environment = {
   production: false,
-  apiBaseUrl: '/api'
+  apiBaseUrl: '/api',
+  desktopAgentDownloadUrl: '/downloads/autovyn-agent.html'
 };
