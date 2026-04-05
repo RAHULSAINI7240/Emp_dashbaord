@@ -12,6 +12,10 @@ const normalizeOrigin = (origin: string): string => {
   }
 };
 
+const DEFAULT_CORS_ORIGINS = ['http://localhost:4200', 'https://emp-dashboard-frontend.onrender.com'].map(
+  (origin) => normalizeOrigin(origin)
+);
+
 const parseTrustProxy = (value?: string): boolean | number | string | undefined => {
   const trimmed = value?.trim();
   if (!trimmed) return undefined;
@@ -39,6 +43,41 @@ const parseBooleanFlag = (value?: string): boolean | undefined => {
   return undefined;
 };
 
+const parseCorsOrigins = (value?: string): string[] => {
+  const source = value?.trim() ? value : DEFAULT_CORS_ORIGINS.join(',');
+  const origins = source
+    .split(',')
+    .map((origin) => normalizeOrigin(origin))
+    .filter(Boolean);
+
+  return origins.length ? origins : DEFAULT_CORS_ORIGINS;
+};
+
+const isPrivateIpv4Hostname = (hostname: string): boolean => {
+  if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(hostname)) return false;
+
+  const octets = hostname.split('.').map(Number);
+  if (octets.some((octet) => Number.isNaN(octet) || octet < 0 || octet > 255)) {
+    return false;
+  }
+
+  return (
+    octets[0] === 10 ||
+    octets[0] === 127 ||
+    (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) ||
+    (octets[0] === 192 && octets[1] === 168)
+  );
+};
+
+const isLikelyLocalOrigin = (origin: string): boolean => {
+  try {
+    const { hostname } = new URL(origin);
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || isPrivateIpv4Hostname(hostname);
+  } catch {
+    return false;
+  }
+};
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3001),
@@ -48,7 +87,7 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(8).max(15).default(12),
-  CORS_ORIGIN: z.string().default('http://localhost:4200'),
+  CORS_ORIGIN: z.string().optional(),
   ARS_APPROVER_MODE: z.enum(['ADMIN', 'MANAGER', 'AUTO']).default('ADMIN'),
   TRUST_PROXY: z.string().optional(),
   BOOTSTRAP_CORE_USERS: z.string().optional(),
@@ -72,9 +111,13 @@ const envSchema = z.object({
 
 export const env = envSchema.parse(process.env);
 
-export const corsOrigins = env.CORS_ORIGIN.split(',')
-  .map((origin) => normalizeOrigin(origin))
-  .filter(Boolean);
+export const corsOrigins = parseCorsOrigins(env.CORS_ORIGIN);
+
+if (env.NODE_ENV === 'production' && corsOrigins.every((origin) => isLikelyLocalOrigin(origin))) {
+  console.warn(
+    'CORS_ORIGIN only contains localhost/private-network origins in production. Add your deployed frontend URL to avoid browser CORS failures.'
+  );
+}
 
 export const trustProxy = parseTrustProxy(env.TRUST_PROXY) ?? (env.NODE_ENV === 'production' ? 1 : false);
 

@@ -83,7 +83,7 @@ Important values:
 - `JWT_ACCESS_SECRET`
 - `JWT_REFRESH_SECRET`
 - `ARS_APPROVER_MODE=ADMIN|MANAGER|AUTO`
-- `CORS_ORIGIN=http://localhost:4200`
+- `CORS_ORIGIN=http://localhost:4200,https://emp-dashboard-frontend.onrender.com`
 - `TRUST_PROXY=1` when deployed behind Render/reverse proxies so rate limiting uses the real client IP
 - `BOOTSTRAP_CORE_USERS=true` on Render if you want startup-created Admin/HR/Manager accounts without running `db:seed`
 - Optional live demo login: set `DEMO_LOGIN_ID` and `DEMO_PASSWORD` on Render to auto-create/refresh a known account at startup
@@ -201,6 +201,7 @@ curl -X POST http://localhost:3001/api/auth/login \
 ### Render startup users
 If your Render service does not run `npm run db:seed`, use these environment variables so the backend auto-creates your main login accounts on startup:
 ```env
+CORS_ORIGIN=http://localhost:4200,https://emp-dashboard-frontend.onrender.com
 TRUST_PROXY=1
 BOOTSTRAP_CORE_USERS=true
 BOOTSTRAP_ADMIN_LOGIN_ID=VYN01
@@ -214,6 +215,7 @@ BOOTSTRAP_MANAGER_PASSWORD=Manager@123
 ### Render demo login
 For one extra live demo user, set these environment variables in Render, redeploy, then log in with the configured credentials:
 ```env
+CORS_ORIGIN=http://localhost:4200,https://emp-dashboard-frontend.onrender.com
 TRUST_PROXY=1
 DEMO_LOGIN_ID=DEMO01
 DEMO_PASSWORD=Demo@12345

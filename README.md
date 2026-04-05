@@ -93,7 +93,7 @@ Important defaults:
 ```env
 PORT=3001
 DATABASE_URL="mongodb://127.0.0.1:27017/autovyn_db?directConnection=true&replicaSet=rs0"
-CORS_ORIGIN="http://localhost:4200"
+CORS_ORIGIN="http://localhost:4200,https://emp-dashboard-frontend.onrender.com"
 ARS_APPROVER_MODE="ADMIN"
 ```
 
