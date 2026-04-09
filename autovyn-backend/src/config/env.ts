@@ -121,4 +121,4 @@ if (env.NODE_ENV === 'production' && corsOrigins.every((origin) => isLikelyLocal
 
 export const trustProxy = parseTrustProxy(env.TRUST_PROXY) ?? (env.NODE_ENV === 'production' ? 1 : false);
 
-export const bootstrapCoreUsersEnabled = parseBooleanFlag(env.BOOTSTRAP_CORE_USERS) ?? false;
+export const bootstrapCoreUsersEnabled = parseBooleanFlag(env.BOOTSTRAP_CORE_USERS) ?? true;

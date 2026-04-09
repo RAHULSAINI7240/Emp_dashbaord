@@ -4,7 +4,7 @@ services:
     runtime: node
     rootDir: autovyn-backend
     buildCommand: npm install && npm run prisma:generate && npm run build
-    preDeployCommand: npm run prisma:push
+    preDeployCommand: npm run prisma:push && npm run db:core-users
     startCommand: npm start
     healthCheckPath: /api/health
     buildFilter:

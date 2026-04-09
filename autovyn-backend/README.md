@@ -65,11 +65,15 @@ src/
    ```bash
    npm run prisma:push
    ```
-8. Seed bundled dummy login data:
+8. Ensure the fixed Admin / HR / Manager accounts:
+   ```bash
+   npm run db:core-users
+   ```
+9. Seed bundled dummy login data:
    ```bash
    npm run db:seed
    ```
-9. Start development server:
+10. Start development server:
    ```bash
    npm run dev
    ```
@@ -85,12 +89,17 @@ Important values:
 - `ARS_APPROVER_MODE=ADMIN|MANAGER|AUTO`
 - `CORS_ORIGIN=http://localhost:4200,https://emp-dashboard-frontend.onrender.com`
 - `TRUST_PROXY=1` when deployed behind Render/reverse proxies so rate limiting uses the real client IP
-- `BOOTSTRAP_CORE_USERS=true` on Render if you want startup-created Admin/HR/Manager accounts without running `db:seed`
+- `BOOTSTRAP_CORE_USERS=false` only if you want to disable the built-in startup-created Admin/HR/Manager accounts
 - Optional live demo login: set `DEMO_LOGIN_ID` and `DEMO_PASSWORD` on Render to auto-create/refresh a known account at startup
 
 ## Seed Users
 - `npm run db:seed` imports the bundled dummy CSV at `prisma/data/dummy-autovyn-users.csv`.
-- It also creates fixed local testing accounts: `VYN01`, `VYN02`, and `VYN03`.
+- The backend also auto-creates fixed core login accounts on startup, even without running `db:seed`.
+- Static core accounts:
+  - `Admin`: `VYN01` / `Admin@123`
+  - `HR`: `VYN02` / `Hr@12345`
+  - `Manager`: `VYN03` / `Manager@123`
+- `npm run db:core-users` is the safe production command to upsert only those three accounts into Atlas/Render without importing dummy employees.
 - Employee login uses the CSV `EmployeeID` values such as `EMP1001`.
 - Passwords come from the CSV `UserPassword` column by default.
 
@@ -199,11 +208,10 @@ curl -X POST http://localhost:3001/api/auth/login \
 ```
 
 ### Render startup users
-If your Render service does not run `npm run db:seed`, use these environment variables so the backend auto-creates your main login accounts on startup:
+The backend now auto-creates the core login accounts on startup by default. Use these environment variables only if you want to override the default IDs/passwords:
 ```env
 CORS_ORIGIN=http://localhost:4200,https://emp-dashboard-frontend.onrender.com
 TRUST_PROXY=1
-BOOTSTRAP_CORE_USERS=true
 BOOTSTRAP_ADMIN_LOGIN_ID=VYN01
 BOOTSTRAP_ADMIN_PASSWORD=Admin@123
 BOOTSTRAP_HR_LOGIN_ID=VYN02

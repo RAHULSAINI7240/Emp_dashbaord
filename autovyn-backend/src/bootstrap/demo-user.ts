@@ -19,6 +19,18 @@ interface BootstrappedUserPayload {
   workMode: 'WFO' | 'WFH' | 'HYBRID';
 }
 
+const DEFAULT_CORE_LOGIN_IDS = {
+  admin: 'VYN01',
+  hr: 'VYN02',
+  manager: 'VYN03'
+} as const;
+
+const DEFAULT_CORE_PASSWORDS = {
+  admin: 'Admin@123',
+  hr: 'Hr@12345',
+  manager: 'Manager@123'
+} as const;
+
 const MANAGER_PERMISSIONS: Permission[] = [
   Permission.APPROVE_LEAVE,
   Permission.APPROVE_ARS,
@@ -99,14 +111,14 @@ const resolveCoreUserPayloads = (): BootstrappedUserPayload[] => {
     return [];
   }
 
-  const adminLoginId = normalizeLoginId(env.BOOTSTRAP_ADMIN_LOGIN_ID ?? 'VYN01');
-  const hrLoginId = normalizeLoginId(env.BOOTSTRAP_HR_LOGIN_ID ?? 'VYN02');
-  const managerLoginId = normalizeLoginId(env.BOOTSTRAP_MANAGER_LOGIN_ID ?? 'VYN03');
+  const adminLoginId = normalizeLoginId(env.BOOTSTRAP_ADMIN_LOGIN_ID ?? DEFAULT_CORE_LOGIN_IDS.admin);
+  const hrLoginId = normalizeLoginId(env.BOOTSTRAP_HR_LOGIN_ID ?? DEFAULT_CORE_LOGIN_IDS.hr);
+  const managerLoginId = normalizeLoginId(env.BOOTSTRAP_MANAGER_LOGIN_ID ?? DEFAULT_CORE_LOGIN_IDS.manager);
 
   const payloads: BootstrappedUserPayload[] = [
     {
       loginId: adminLoginId,
-      password: env.BOOTSTRAP_ADMIN_PASSWORD?.trim() ?? '',
+      password: env.BOOTSTRAP_ADMIN_PASSWORD?.trim() || DEFAULT_CORE_PASSWORDS.admin,
       role: Role.ADMIN,
       name: 'Autovyn Admin',
       department: 'Administration',
@@ -119,7 +131,7 @@ const resolveCoreUserPayloads = (): BootstrappedUserPayload[] => {
     },
     {
       loginId: hrLoginId,
-      password: env.BOOTSTRAP_HR_PASSWORD?.trim() ?? '',
+      password: env.BOOTSTRAP_HR_PASSWORD?.trim() || DEFAULT_CORE_PASSWORDS.hr,
       role: Role.HR,
       name: 'Autovyn HR',
       department: 'Human Resources',
@@ -133,7 +145,7 @@ const resolveCoreUserPayloads = (): BootstrappedUserPayload[] => {
     },
     {
       loginId: managerLoginId,
-      password: env.BOOTSTRAP_MANAGER_PASSWORD?.trim() ?? '',
+      password: env.BOOTSTRAP_MANAGER_PASSWORD?.trim() || DEFAULT_CORE_PASSWORDS.manager,
       role: Role.EMPLOYEE,
       name: 'Autovyn Manager',
       department: 'Operations',
@@ -146,14 +158,6 @@ const resolveCoreUserPayloads = (): BootstrappedUserPayload[] => {
       workMode: 'WFO'
     }
   ];
-
-  const missingPasswords = payloads.filter((payload) => !payload.password).map((payload) => payload.loginId);
-  if (missingPasswords.length) {
-    console.warn(
-      `Skipping core-user bootstrap because passwords are missing for: ${missingPasswords.join(', ')}.`
-    );
-    return [];
-  }
 
   const loginIds = payloads.map((payload) => payload.loginId);
   if (new Set(loginIds).size !== loginIds.length) {

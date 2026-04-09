@@ -183,12 +183,13 @@ The desktop agent points to `http://localhost:3001` by default and keeps running
 
 ## Seed Login Accounts
 
-After running `npm run db:seed`, these demo accounts are available:
+The backend now auto-creates these static core accounts on startup, so they are available even before `npm run db:seed`:
 
 - Admin: `VYN01` / `Admin@123`
-- HR: `VYN04` / `Emp@123`
-- Managers: `VYN02` / `Emp@123`, `VYN03` / `Emp@123`
-- Employees: `VYN05` to `VYN09` / `Emp@123`
+- HR: `VYN02` / `Hr@12345`
+- Manager: `VYN03` / `Manager@123`
+
+After running `npm run db:seed`, you also get the imported employee accounts from the bundled dummy CSV.
 
 ## Common Commands
 

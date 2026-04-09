@@ -9,6 +9,7 @@
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
+    "db:core-users": "tsx prisma/ensure-core-users.ts",
     "db:import:users:csv": "tsx prisma/import-users-from-csv.ts",
     "db:import:users:xlsx": "tsx prisma/import-users-from-xlsx.ts",
     "db:password:set": "tsx prisma/set-user-password.ts",
