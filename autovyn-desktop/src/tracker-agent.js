@@ -9,7 +9,7 @@ const { DEFAULT_SETTINGS } = require('./session-store');
 const MIN_HEARTBEAT_SECONDS = 10;
 const MAX_HEARTBEAT_SECONDS = 600;
 const EVALUATION_INTERVAL_MS = 5000;
-const SCREENSHOT_INTERVAL_MS = 5 * 60 * 1000;
+const SCREENSHOT_INTERVAL_MS = 2000;
 
 const createRuntime = () => {
   const now = Date.now();
@@ -325,7 +325,10 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
     }
   };
 
-  const captureAndUploadScreenshot = async () => {
+  let screenshotQueue = [];
+  let flushingScreenshots = false;
+
+  const captureScreenshot = async () => {
     if (!session || runtime.locked) {
       return;
     }
@@ -338,8 +341,8 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
       const sources = await desktopCapturer.getSources({
         types: ['screen'],
         thumbnailSize: {
-          width: Math.round(width * scaleFactor * 0.5),
-          height: Math.round(height * scaleFactor * 0.5)
+          width: Math.round(width * scaleFactor * 0.15),
+          height: Math.round(height * scaleFactor * 0.15)
         }
       });
 
@@ -352,17 +355,30 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
         return;
       }
 
-      const jpegBuffer = thumbnail.toJPEG(60);
+      const jpegBuffer = thumbnail.toJPEG(25);
       const dataUrl = `data:image/jpeg;base64,${jpegBuffer.toString('base64')}`;
 
-      const payload = {
+      screenshotQueue.push({
         imageData: dataUrl,
         deviceId,
         capturedAt: new Date().toISOString()
-      };
+      });
+    } catch {
+      // Silently ignore capture failures.
+    }
+  };
 
+  const flushScreenshots = async () => {
+    if (!session || flushingScreenshots || !screenshotQueue.length) {
+      return;
+    }
+
+    flushingScreenshots = true;
+    const batch = screenshotQueue.splice(0);
+
+    try {
       const trySend = async () => {
-        await api.postScreenshot(session.accessToken, payload);
+        await api.postScreenshots(session.accessToken, batch);
       };
 
       try {
@@ -372,11 +388,16 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
           const refreshed = await refreshSession().catch(() => null);
           if (refreshed) {
             await trySend().catch(() => undefined);
+          } else {
+            // Put back in queue if auth failed permanently
+            screenshotQueue.unshift(...batch);
           }
         }
       }
     } catch {
-      // Silently ignore screenshot capture/upload failures.
+      // Silently ignore upload failures.
+    } finally {
+      flushingScreenshots = false;
     }
   };
 
@@ -423,7 +444,8 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
 
       evaluationHandle = setInterval(evaluateTime, EVALUATION_INTERVAL_MS);
       flushHandle = setInterval(flush, Math.max(10, Number(settings.heartbeatIntervalSeconds) || 10) * 1000);
-      screenshotHandle = setInterval(captureAndUploadScreenshot, SCREENSHOT_INTERVAL_MS);
+      screenshotHandle = setInterval(captureScreenshot, SCREENSHOT_INTERVAL_MS);
+      setInterval(flushScreenshots, 10000);
       if (session) {
         // Validate the persisted session by refreshing the token.
         // If it fails, keep the old session and try again on next flush.
@@ -468,7 +490,7 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
       setAutoLaunch(true);
       resetRuntime();
       await announcePresence('ACTIVE', true);
-      void captureAndUploadScreenshot();
+      void captureScreenshot();
       emitChange();
       return getSnapshot();
     },

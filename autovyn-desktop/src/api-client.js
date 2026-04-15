@@ -144,6 +144,17 @@ const createApiClient = (getBaseUrl) => ({
       body: payload,
       timeoutMs: 30000
     });
+  },
+
+  async postScreenshots(accessToken, batch) {
+    return request(getBaseUrl(), '/api/screenshots/upload-batch', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      },
+      body: { screenshots: batch },
+      timeoutMs: 60000
+    });
   }
 });
 

@@ -29,6 +29,17 @@ export const screenshotsService = {
     });
   },
 
+  async uploadBatch(userId: string, items: Omit<UploadInput, 'userId'>[]) {
+    const data = items.map((item) => ({
+      userId,
+      imageData: item.imageData,
+      deviceId: item.deviceId ?? null,
+      capturedAt: new Date(item.capturedAt)
+    }));
+
+    return prisma.screenshot.createMany({ data });
+  },
+
   async listByUserAndDate(input: ListInput) {
     return prisma.screenshot.findMany({
       where: {

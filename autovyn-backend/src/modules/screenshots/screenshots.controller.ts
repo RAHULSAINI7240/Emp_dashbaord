@@ -22,6 +22,15 @@ export const screenshotsController = {
     return sendSuccess(res, 'Screenshot uploaded.', data, 201);
   }),
 
+  uploadBatch: asyncHandler(async (req: Request, res: Response) => {
+    const result = await screenshotsService.uploadBatch(
+      req.auth!.userId,
+      req.body.screenshots
+    );
+
+    return sendSuccess(res, `${result.count} screenshots uploaded.`, { count: result.count }, 201);
+  }),
+
   list: asyncHandler(async (req: Request, res: Response) => {
     const userId = req.query.userId as string;
     const date = req.query.date as string;
@@ -74,7 +83,7 @@ export const screenshotsController = {
     };
 
     void poll();
-    const intervalHandle = setInterval(poll, 15_000);
+    const intervalHandle = setInterval(poll, 5_000);
     const keepAlive = setInterval(() => {
       res.write(': keep-alive\n\n');
     }, 20_000);

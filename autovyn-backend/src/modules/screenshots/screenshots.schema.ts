@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const screenshotUploadSchema = z.object({
+const screenshotItem = z.object({
   imageData: z
     .string()
     .min(100)
@@ -11,6 +11,12 @@ export const screenshotUploadSchema = z.object({
     ),
   deviceId: z.string().trim().min(1).max(120).optional(),
   capturedAt: z.string().datetime()
+});
+
+export const screenshotUploadSchema = screenshotItem;
+
+export const screenshotBatchUploadSchema = z.object({
+  screenshots: z.array(screenshotItem).min(1).max(50)
 });
 
 export const screenshotListQuerySchema = z.object({
