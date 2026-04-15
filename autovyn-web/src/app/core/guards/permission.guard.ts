@@ -18,5 +18,5 @@ export const permissionGuard: CanActivateFn = (route: ActivatedRouteSnapshot) =>
   }
 
   if (!permission) return true;
-  return auth.hasPermission(permission) ? true : router.createUrlTree(['/employee/dashboard']);
+  return auth.hasPermission(permission) ? true : router.createUrlTree(['/employee/attendance']);
 };

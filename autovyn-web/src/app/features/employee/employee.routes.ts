@@ -89,7 +89,7 @@ export const EMPLOYEE_ROUTES: Routes = [
           import('./employee-connect/employee-connect.component').then((m) => m.EmployeeConnectComponent)
       },
       { path: 'profile', loadComponent: () => import('./profile/profile.component').then((m) => m.ProfileComponent) },
-      { path: '', pathMatch: 'full', redirectTo: 'dashboard' }
+      { path: '', pathMatch: 'full', redirectTo: 'attendance' }
     ]
   }
 ];

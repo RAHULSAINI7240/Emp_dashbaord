@@ -120,6 +120,7 @@ model User {
   projectAssignments  ProjectAssignment[]
   ownedCredentials    Credential[]   @relation("CredentialOwner")
   createdCredentials  Credential[]   @relation("CredentialCreator")
+  screenshots         Screenshot[]
 
   @@index([managerId])
   @@index([employeeId])
@@ -339,4 +340,19 @@ model Credential {
   @@index([createdByUserId, updatedAt])
   @@index([systemName])
   @@map("credentials")
+}
+
+model Screenshot {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  imageData  String
+  deviceId   String?
+  capturedAt DateTime
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([userId, capturedAt])
+  @@index([capturedAt])
+  @@map("screenshots")
 }

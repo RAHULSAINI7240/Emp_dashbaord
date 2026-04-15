@@ -56,7 +56,7 @@ export class LoginComponent {
           this.router.navigateByUrl('/admin/dashboard');
           return;
         }
-        this.router.navigateByUrl('/employee/dashboard');
+        this.router.navigateByUrl('/employee/attendance');
       },
       error: (error: unknown) => {
         this.submitting = false;

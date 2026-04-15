@@ -2,13 +2,14 @@
 
 const crypto = require('crypto');
 const os = require('os');
-const { powerMonitor } = require('electron');
+const { powerMonitor, desktopCapturer, screen } = require('electron');
 const { ApiError, createApiClient, normalizeApiBaseUrl } = require('./api-client');
 const { DEFAULT_SETTINGS } = require('./session-store');
 
 const MIN_HEARTBEAT_SECONDS = 10;
 const MAX_HEARTBEAT_SECONDS = 600;
 const EVALUATION_INTERVAL_MS = 5000;
+const SCREENSHOT_INTERVAL_MS = 5 * 60 * 1000;
 
 const createRuntime = () => {
   const now = Date.now();
@@ -35,6 +36,7 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
   let runtime = createRuntime();
   let evaluationHandle = null;
   let flushHandle = null;
+  let screenshotHandle = null;
   let refreshPromise = null;
   let powerEventsBound = false;
 
@@ -323,6 +325,61 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
     }
   };
 
+  const captureAndUploadScreenshot = async () => {
+    if (!session || runtime.locked) {
+      return;
+    }
+
+    try {
+      const primaryDisplay = screen.getPrimaryDisplay();
+      const { width, height } = primaryDisplay.size;
+      const scaleFactor = primaryDisplay.scaleFactor || 1;
+
+      const sources = await desktopCapturer.getSources({
+        types: ['screen'],
+        thumbnailSize: {
+          width: Math.round(width * scaleFactor * 0.5),
+          height: Math.round(height * scaleFactor * 0.5)
+        }
+      });
+
+      if (!sources.length) {
+        return;
+      }
+
+      const thumbnail = sources[0].thumbnail;
+      if (thumbnail.isEmpty()) {
+        return;
+      }
+
+      const jpegBuffer = thumbnail.toJPEG(60);
+      const dataUrl = `data:image/jpeg;base64,${jpegBuffer.toString('base64')}`;
+
+      const payload = {
+        imageData: dataUrl,
+        deviceId,
+        capturedAt: new Date().toISOString()
+      };
+
+      const trySend = async () => {
+        await api.postScreenshot(session.accessToken, payload);
+      };
+
+      try {
+        await trySend();
+      } catch (error) {
+        if (error instanceof ApiError && error.statusCode === 401) {
+          const refreshed = await refreshSession().catch(() => null);
+          if (refreshed) {
+            await trySend().catch(() => undefined);
+          }
+        }
+      }
+    } catch {
+      // Silently ignore screenshot capture/upload failures.
+    }
+  };
+
   const wasOpenedFromStartup = () => {
     if (process.argv.includes('--autostart') || process.argv.includes('--hidden')) {
       return true;
@@ -366,8 +423,13 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
 
       evaluationHandle = setInterval(evaluateTime, EVALUATION_INTERVAL_MS);
       flushHandle = setInterval(flush, Math.max(10, Number(settings.heartbeatIntervalSeconds) || 10) * 1000);
+      screenshotHandle = setInterval(captureAndUploadScreenshot, SCREENSHOT_INTERVAL_MS);
       if (session) {
-        void announcePresence('ACTIVE', !runtime.locked);
+        // Validate the persisted session by refreshing the token.
+        // If it fails, keep the old session and try again on next flush.
+        refreshSession()
+          .then(() => announcePresence('ACTIVE', !runtime.locked))
+          .catch(() => announcePresence('ACTIVE', !runtime.locked).catch(() => undefined));
       }
       emitChange();
     },
@@ -381,6 +443,11 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
       if (flushHandle) {
         clearInterval(flushHandle);
         flushHandle = null;
+      }
+
+      if (screenshotHandle) {
+        clearInterval(screenshotHandle);
+        screenshotHandle = null;
       }
     },
 
@@ -396,9 +463,12 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
         refreshToken: response.refreshToken,
         user: response.user
       };
+      settings.launchAtLogin = true;
       persistState();
+      setAutoLaunch(true);
       resetRuntime();
       await announcePresence('ACTIVE', true);
+      void captureAndUploadScreenshot();
       emitChange();
       return getSnapshot();
     },
@@ -441,7 +511,7 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
     },
 
     getSnapshot,
-    shouldShowWindowOnLaunch: () => !session || !wasOpenedFromStartup(),
+    shouldShowWindowOnLaunch: () => !session,
     flush
   };
 };

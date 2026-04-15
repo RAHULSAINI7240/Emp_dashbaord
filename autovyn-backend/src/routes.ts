@@ -11,6 +11,7 @@ import policiesRoutes from './modules/policies/policies.routes';
 import worklogRoutes from './modules/worklog/worklog.routes';
 import projectsRoutes from './modules/projects/projects.routes';
 import credentialsRoutes from './modules/credentials/credentials.routes';
+import screenshotsRoutes from './modules/screenshots/screenshots.routes';
 import { sendFailure, sendSuccess } from './utils/api-response';
 
 const router = Router();
@@ -50,5 +51,6 @@ router.use(policiesRoutes);
 router.use(worklogRoutes);
 router.use(projectsRoutes);
 router.use(credentialsRoutes);
+router.use(screenshotsRoutes);
 
 export default router;

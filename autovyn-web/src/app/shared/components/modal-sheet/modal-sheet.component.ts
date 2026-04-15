@@ -12,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class ModalSheetComponent {
   actions = [
+    { label: 'Dashboard', icon: 'space_dashboard', link: '/employee/dashboard' },
     { label: 'My Profile', icon: 'person', link: '/employee/profile' },
     { label: 'Autovyn Cal', icon: 'calendar_month', link: '/employee/timesheet' },
     { label: 'Timesheet', icon: 'assignment', link: '/employee/work-timesheet' },

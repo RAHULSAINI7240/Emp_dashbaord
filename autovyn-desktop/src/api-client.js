@@ -133,6 +133,17 @@ const createApiClient = (getBaseUrl) => ({
       },
       body: payload
     });
+  },
+
+  async postScreenshot(accessToken, payload) {
+    return request(getBaseUrl(), '/api/screenshots/upload', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      },
+      body: payload,
+      timeoutMs: 30000
+    });
   }
 });
 

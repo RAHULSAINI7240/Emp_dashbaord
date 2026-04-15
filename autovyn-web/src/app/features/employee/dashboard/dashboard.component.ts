@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,17 +17,9 @@ import { User } from '../../../shared/models/user.model';
 import { WorklogEmployeeSummary, WorklogSummary } from '../../../shared/models/worklog.model';
 import { HOLIDAY_CALENDAR } from '../../../shared/utils/holiday-data';
 import { AiAnalyticsService } from './analytics/ai-analytics.service';
-import { AiEfficiencyCardComponent } from './analytics/ai-efficiency-card.component';
 import { FocusAnalyticsService } from './analytics/focus-analytics.service';
-import { FocusAnalyticsCardComponent } from './analytics/focus-analytics-card.component';
 import { KpiTrendCardComponent } from './analytics/kpi-trend-card.component';
-import { PredictionCardComponent } from './analytics/prediction-card.component';
-import { WorkHeatmapComponent } from './analytics/work-heatmap.component';
 import { ProductivityAttendanceLog } from './analytics/analytics.models';
-import { BadgeEngineService } from './gamification/badge-engine.service';
-import { BadgeShowcaseComponent } from './gamification/badge-showcase.component';
-import { InsightsEngineService } from './insights/insights-engine.service';
-import { InsightsPanelComponent } from './insights/insights-panel.component';
 import { WorkStatusService } from './realtime/work-status.service';
 
 interface PunchLocation {
@@ -112,19 +104,14 @@ type FaceDetectorCtor = new (options?: { fastMode?: boolean; maxDetectedFaces?: 
     MatIconModule,
     NgFor,
     NgIf,
-    KpiTrendCardComponent,
-    AiEfficiencyCardComponent,
-    FocusAnalyticsCardComponent,
-    WorkHeatmapComponent,
-    PredictionCardComponent,
-    BadgeShowcaseComponent,
-    InsightsPanelComponent
+    KpiTrendCardComponent
   ],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+  styleUrls: ['./dashboard.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
-  private readonly vscodeRefreshIntervalMs = 10_000;
+  private readonly vscodeRefreshIntervalMs = 60_000;
   @ViewChild('swipeTrack') swipeTrack?: ElementRef<HTMLElement>;
   @ViewChild('swipeKnob') swipeKnob?: ElementRef<HTMLElement>;
   @ViewChild('cameraPreview') cameraPreview?: ElementRef<HTMLVideoElement>;
@@ -182,7 +169,6 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
   private pendingFaceCaptureResolve: ((value: FaceCaptureEvidence) => void) | null = null;
   private employeeUsers: User[] = [];
   private readonly subscriptions = new Subscription();
-  private currentLeaderboardRank = 1;
   private vscodeRefreshHandle: ReturnType<typeof setInterval> | null = null;
   private clockHandle: ReturnType<typeof setInterval> | null = null;
   private worklogStreamAbortController: AbortController | null = null;
@@ -198,30 +184,6 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
 
   get kpiTrendMetrics() {
     return this.aiAnalyticsService.kpiTrends;
-  }
-
-  get badges() {
-    return this.badgeEngineService.badges;
-  }
-
-  get leaderboard() {
-    return this.badgeEngineService.leaderboard;
-  }
-
-  get latestUnlockedBadgeId() {
-    return this.badgeEngineService.latestUnlockedBadgeId;
-  }
-
-  get insightCards() {
-    return this.insightsEngineService.insights;
-  }
-
-  get insightsLoading() {
-    return this.insightsEngineService.loading;
-  }
-
-  get predictionSnapshot() {
-    return this.insightsEngineService.prediction;
   }
 
   get dashboardSubjectName(): string {
@@ -296,6 +258,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly cdr: ChangeDetectorRef,
     public readonly authService: AuthService,
     private readonly attendanceService: AttendanceService,
     private readonly leaveService: LeaveService,
@@ -304,8 +267,6 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
     private readonly workStatusService: WorkStatusService,
     private readonly aiAnalyticsService: AiAnalyticsService,
     private readonly focusAnalyticsService: FocusAnalyticsService,
-    private readonly badgeEngineService: BadgeEngineService,
-    private readonly insightsEngineService: InsightsEngineService,
     private readonly worklogService: WorklogService
   ) {
     this.resolveViewMode();
@@ -339,7 +300,8 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
   ngOnInit(): void {
     this.clockHandle = setInterval(() => {
       this.now = new Date();
-    }, 1000);
+      this.cdr.markForCheck();
+    }, 60_000);
   }
 
   ngAfterViewInit(): void {
@@ -1038,6 +1000,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
     await this.loadEmployeeAttendanceData();
     this.syncCalendarMonths();
     this.syncPremiumAnalytics();
+    this.cdr.markForCheck();
     return true;
   }
 
@@ -1643,6 +1606,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
         this.employeeUsers = employees;
         this.totalEmployees = employees.length;
         this.syncPremiumAnalytics();
+        this.cdr.markForCheck();
       })
     );
   }
@@ -1678,6 +1642,8 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
       } else {
         this.stopLiveLocationTracking();
       }
+
+      this.cdr.markForCheck();
     } catch {
       // Keep the current local state if backend sync fails.
     }
@@ -1750,6 +1716,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
         );
         this.monthlyLeaveDays = this.countLeaveDaysByMonth(this.now);
         this.syncCalendarMonths();
+        this.cdr.markForCheck();
       })
     );
   }
@@ -1776,6 +1743,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
         this.vscodeSummary = summary;
         this.vscodePrimarySummary = summary?.employees[0] ?? null;
         this.vscodeLoading = false;
+        this.cdr.markForCheck();
       })
     );
   }
@@ -1809,7 +1777,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
         this.worklogStreamReconnectHandle = setTimeout(() => {
           this.worklogStreamReconnectHandle = null;
           this.initializeWorklogLiveStream();
-        }, 2000);
+        }, 5000);
       });
   }
 
@@ -1958,6 +1926,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
           this.refreshLocationSummaries();
           this.syncCalendarMonths();
           this.syncPremiumAnalytics();
+          this.cdr.markForCheck();
         })
     );
   }
@@ -2039,50 +2008,6 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
     const logs = this.productivityLogs;
     this.aiAnalyticsService.setAttendanceLogs(logs);
     this.focusAnalyticsService.setAttendanceLogs(logs);
-
-    const ai = this.aiSnapshot();
-    const workStreakDays = this.currentWorkStreakDays(logs);
-    const estimatedScore = Math.round(this.focusSnapshot().focusScore * 0.6 + ai.efficiency * 0.4);
-    this.currentLeaderboardRank = this.badgeEngineService.updateCurrentUserRank(estimatedScore);
-
-    this.badgeEngineService.updateBadges({
-      aiEfficiency: ai.efficiency,
-      workStreakDays,
-      punctualityRate: this.punctualityRate,
-      productivityBoost: ai.productivityBoostPercent,
-      leaderboardRank: this.currentLeaderboardRank
-    });
-
-    this.insightsEngineService.update({
-      logs,
-      aiEfficiency: ai.efficiency,
-      aiBoostPercent: ai.productivityBoostPercent,
-      focusScore: this.focusSnapshot().focusScore,
-      leaderboardRank: this.currentLeaderboardRank
-    });
-  }
-
-  private currentWorkStreakDays(logs: ProductivityAttendanceLog[]): number {
-    const sortedDates = logs.map((log) => log.date).sort((a, b) => a.localeCompare(b));
-    if (!sortedDates.length) return 0;
-
-    let streak = 1;
-    let best = 1;
-
-    for (let index = 1; index < sortedDates.length; index += 1) {
-      const prev = new Date(sortedDates[index - 1] ?? '');
-      const curr = new Date(sortedDates[index] ?? '');
-      if (Number.isNaN(prev.getTime()) || Number.isNaN(curr.getTime())) continue;
-      const diffDays = Math.round((curr.getTime() - prev.getTime()) / 86400000);
-      if (diffDays === 1) {
-        streak += 1;
-        best = Math.max(best, streak);
-      } else {
-        streak = 1;
-      }
-    }
-
-    return best;
   }
 
   private countFestivalDays(date: Date): number {

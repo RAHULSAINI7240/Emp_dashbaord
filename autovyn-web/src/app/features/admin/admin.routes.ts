@@ -38,6 +38,11 @@ export const ADMIN_ROUTES: Routes = [
         loadComponent: () => import('./approvals/approvals.component').then((m) => m.AdminApprovalsComponent)
       },
       {
+        path: 'screenshots',
+        loadComponent: () =>
+          import('./screenshots/admin-screenshots.component').then((m) => m.AdminScreenshotsComponent)
+      },
+      {
         path: 'projects',
         loadComponent: () => import('../employee/projects/projects.component').then((m) => m.ProjectsComponent)
       },

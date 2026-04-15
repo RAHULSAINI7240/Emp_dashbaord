@@ -1,0 +1,65 @@
+<div class="screenshots-wrap">
+  <!-- Employee List -->
+  <section class="panel-card" *ngIf="!selectedEmployee">
+    <div class="section-head">
+      <h2><mat-icon>screenshot_monitor</mat-icon>Employee Screenshots</h2>
+      <p>Select an employee to view today's screen captures.</p>
+    </div>
+
+    <div class="employee-list">
+      <button type="button" *ngFor="let emp of employees" class="employee-row" (click)="selectEmployee(emp)">
+        <div class="employee-info">
+          <strong>{{ emp.name }}</strong>
+          <p><mat-icon>badge</mat-icon>{{ emp.designation }} &mdash; {{ emp.city }}</p>
+        </div>
+        <span class="photos-btn">
+          <mat-icon>photo_library</mat-icon>
+          Check Photos
+        </span>
+      </button>
+
+      <p class="empty-state" *ngIf="!employees.length">No employees found.</p>
+    </div>
+  </section>
+
+  <!-- Screenshot Viewer -->
+  <section class="panel-card" *ngIf="selectedEmployee">
+    <div class="section-head">
+      <button type="button" class="back-btn" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Back
+      </button>
+      <div>
+        <h2><mat-icon>screenshot_monitor</mat-icon>{{ selectedEmployee.name }}</h2>
+        <p>Screenshots captured today ({{ todayDate }}). Updates live without refresh.</p>
+      </div>
+    </div>
+
+    <p class="loading-state" *ngIf="loading">Loading screenshots...</p>
+
+    <div class="screenshot-grid" *ngIf="!loading">
+      <button type="button" *ngFor="let shot of screenshots" class="screenshot-card" (click)="openPreview(shot.imageData)">
+        <img [src]="shot.imageData" alt="Screenshot" loading="lazy" />
+        <div class="screenshot-meta">
+          <span><mat-icon>schedule</mat-icon>{{ shot.capturedAt | date: 'hh:mm:ss a' }}</span>
+          <span *ngIf="shot.deviceId"><mat-icon>computer</mat-icon>{{ shot.deviceId | slice:0:20 }}</span>
+        </div>
+      </button>
+
+      <p class="empty-state" *ngIf="!screenshots.length">
+        No screenshots captured today. Screenshots appear here automatically when the desktop agent is running.
+      </p>
+    </div>
+  </section>
+
+  <!-- Full-screen Preview -->
+  <!-- eslint-disable-next-line -->
+  <div *ngIf="previewUrl" class="preview-backdrop" (click)="closePreview()" (keydown.escape)="closePreview()">
+    <div class="preview-dialog" (click)="$event.stopPropagation()" (keydown.escape)="closePreview()">
+      <button type="button" class="preview-close" (click)="closePreview()">
+        <mat-icon>close</mat-icon>
+      </button>
+      <img [src]="previewUrl" alt="Screenshot preview" />
+    </div>
+  </div>
+</div>

@@ -111,7 +111,10 @@ elements.loginForm.addEventListener('submit', async (event) => {
     });
     elements.password.value = '';
     render(state);
-    showMessage('Login successful. Autovyn Desktop is now tracking in the background and can launch on startup.', 'success');
+    showMessage('Login successful. Hiding to tray — the app is now tracking in the background.', 'success');
+    setTimeout(() => {
+      window.autovynAgent.hideWindow();
+    }, 1800);
   } catch (error) {
     showMessage(error && error.message ? error.message : 'Login failed.', 'danger');
   } finally {
@@ -148,8 +151,14 @@ elements.settingsForm.addEventListener('submit', async (event) => {
   }
 });
 
+// Use IPC events for real-time state changes instead of polling
+window.autovynAgent.onStateChanged(() => {
+  void refresh();
+});
+
+// Light fallback refresh every 30s (instead of 1.5s) for robustness
 setInterval(() => {
   void refresh();
-}, 1500);
+}, 30000);
 
 void initializeConfig().then(refresh);

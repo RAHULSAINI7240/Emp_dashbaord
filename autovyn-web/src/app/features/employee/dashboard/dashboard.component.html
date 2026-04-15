@@ -324,15 +324,6 @@
       </div>
     </article>
 
-    <article class="panel-card graph-card">
-      <h3><mat-icon>groups_2</mat-icon>Total Employee Section</h3>
-      <div class="bar-row" *ngFor="let item of employeeSegmentBars">
-        <div class="bar-label"><mat-icon>{{ item.icon }}</mat-icon>{{ item.label }}</div>
-        <div class="bar-track"><span class="bar-fill" [style.width.%]="item.percent" [style.background]="item.color"></span></div>
-        <div class="bar-meta">{{ item.value }} ({{ item.percent }}%)</div>
-      </div>
-    </article>
-
     <article class="panel-card graph-card wide-card">
       <h3><mat-icon>show_chart</mat-icon>Daily Login/Logout Graph</h3>
       <div class="graph-row" *ngFor="let log of reportLogs">
@@ -448,31 +439,6 @@
         </div>
       </div>
     </article>
-
-    <article class="panel-card ai-card wide-card">
-      <h3><mat-icon>psychology</mat-icon>AI Attendance Report</h3>
-      <ul>
-        <li *ngFor="let insight of aiInsights">{{ insight }}</li>
-      </ul>
-    </article>
-
-    <div class="premium-grid wide-card">
-      <app-ai-efficiency-card [snapshot]="aiSnapshot()"></app-ai-efficiency-card>
-      <app-focus-analytics-card [snapshot]="focusSnapshot()"></app-focus-analytics-card>
-    </div>
-
-    <div class="premium-grid wide-card">
-      <app-work-heatmap [logs]="productivityLogs"></app-work-heatmap>
-      <app-prediction-card [prediction]="predictionSnapshot()"></app-prediction-card>
-    </div>
-
-    <app-insights-panel class="wide-card" [loading]="insightsLoading()" [insights]="insightCards()"></app-insights-panel>
-    <app-badge-showcase
-      class="wide-card"
-      [badges]="badges()"
-      [leaderboard]="leaderboard()"
-      [unlockedBadgeId]="latestUnlockedBadgeId()"
-    ></app-badge-showcase>
   </div>
 
   <div

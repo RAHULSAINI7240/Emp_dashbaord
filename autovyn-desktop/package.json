@@ -71,7 +71,11 @@
       "maintainer": "Autovyn Engineering <engineering@autovyn.local>",
       "icon": "assets/icon.png",
       "artifactName": "Autovyn-Desktop.${ext}",
-      "category": "Office"
+      "category": "Office",
+      "executableArgs": [
+        "--no-sandbox",
+        "--ozone-platform=x11"
+      ]
     },
     "nsis": {
       "oneClick": false,

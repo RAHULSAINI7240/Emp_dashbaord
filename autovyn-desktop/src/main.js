@@ -6,6 +6,14 @@ const { DEFAULT_API_BASE_URL } = require('./app-config');
 const { createSessionStore } = require('./session-store');
 const { createTrackerAgent } = require('./tracker-agent');
 
+// Force X11 on Linux so desktopCapturer works silently without
+// triggering the Wayland/PipeWire XDG portal "Share Screen" prompt.
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('ozone-platform', 'x11');
+  app.commandLine.appendSwitch('disable-features', 'WaylandWindowDecorations');
+  process.env.ELECTRON_OZONE_PLATFORM_HINT = 'x11';
+}
+
 let mainWindow = null;
 let tray = null;
 let quitting = false;
@@ -17,6 +25,7 @@ const createMainWindow = () => {
     minWidth: 420,
     minHeight: 620,
     show: false,
+    skipTaskbar: true,
     autoHideMenuBar: true,
     backgroundColor: '#0f172a',
     webPreferences: {
@@ -52,6 +61,7 @@ const setupSingleInstance = () => {
 
   app.on('second-instance', () => {
     if (mainWindow) {
+      mainWindow.setSkipTaskbar(false);
       mainWindow.show();
       mainWindow.focus();
     }
@@ -103,6 +113,7 @@ app.whenReady().then(() => {
           label: 'Open Autovyn Desktop',
           click: () => {
             if (mainWindow) {
+              mainWindow.setSkipTaskbar(false);
               mainWindow.show();
               mainWindow.focus();
             }
@@ -119,6 +130,7 @@ app.whenReady().then(() => {
               label: 'Login',
               click: () => {
                 if (mainWindow) {
+                  mainWindow.setSkipTaskbar(false);
                   mainWindow.show();
                   mainWindow.focus();
                 }
@@ -141,6 +153,7 @@ app.whenReady().then(() => {
   tray = new Tray(buildTrayImage());
   tray.on('click', () => {
     if (mainWindow) {
+      mainWindow.setSkipTaskbar(false);
       mainWindow.show();
       mainWindow.focus();
     }
@@ -158,6 +171,7 @@ app.whenReady().then(() => {
   ipcMain.handle('agent:update-settings', async (_event, payload) => tracker.updateSettings(payload || {}));
   ipcMain.handle('agent:open-window', async () => {
     if (mainWindow) {
+      mainWindow.setSkipTaskbar(false);
       mainWindow.show();
       mainWindow.focus();
     }
@@ -166,7 +180,16 @@ app.whenReady().then(() => {
 
   if (tracker.shouldShowWindowOnLaunch()) {
     mainWindow.show();
+    mainWindow.setSkipTaskbar(false);
   }
+
+  ipcMain.handle('agent:hide-window', async () => {
+    if (mainWindow) {
+      mainWindow.hide();
+      mainWindow.setSkipTaskbar(true);
+    }
+    return true;
+  });
 
   app.on('before-quit', async () => {
     quitting = true;
@@ -176,6 +199,7 @@ app.whenReady().then(() => {
 
   app.on('activate', () => {
     if (mainWindow) {
+      mainWindow.setSkipTaskbar(false);
       mainWindow.show();
       mainWindow.focus();
     }

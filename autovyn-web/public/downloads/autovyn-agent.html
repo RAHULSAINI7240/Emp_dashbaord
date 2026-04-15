@@ -420,7 +420,7 @@
           class="platform-card"
           data-release-card
           data-platform="windows"
-          data-urls="/downloads/windows/Autovyn-Desktop-Setup.exe|/downloads/windows/Autovyn-Agent-Setup.exe"
+          data-urls="github://Autovyn-Desktop-Setup.exe"
         >
           <span class="platform-badge">Windows</span>
           <h2>Installer (.exe)</h2>
@@ -433,7 +433,7 @@
           class="platform-card"
           data-release-card
           data-platform="macos"
-          data-urls="/downloads/macos/Autovyn-Desktop.dmg|/downloads/macos/Autovyn-Agent.dmg"
+          data-urls="github://Autovyn-Desktop.dmg"
         >
           <span class="platform-badge">macOS</span>
           <h2>Disk image (.dmg)</h2>
@@ -446,13 +446,17 @@
           class="platform-card"
           data-release-card
           data-platform="linux"
-          data-urls="/downloads/linux/Autovyn-Desktop.deb|/downloads/linux/Autovyn-Agent.deb|/downloads/linux/Autovyn-Desktop.AppImage|/downloads/linux/Autovyn-Agent.AppImage"
+          data-urls="github://Autovyn-Desktop.deb|github://Autovyn-Desktop.AppImage"
         >
           <span class="platform-badge">Linux</span>
           <h2>Package (.deb) or portable app (.AppImage)</h2>
           <p class="platform-note">
             Ubuntu and Debian users should prefer the <code>.deb</code> installer. If you use the
-            <code>.AppImage</code>, Linux may ask you to allow executing the file before it opens.
+            <code>.AppImage</code>, open a terminal and run these commands first:<br>
+            <code>sudo apt install libfuse2</code> (one-time setup)<br>
+            <code>chmod +x Autovyn-Desktop.AppImage</code><br>
+            <code>./Autovyn-Desktop.AppImage</code><br>
+            Without these steps Linux will block the file from running.
           </p>
           <div class="status waiting" data-status>Checking if this installer is published...</div>
           <a class="download-link" data-link aria-disabled="true" href="#">Installer not published yet</a>
@@ -460,19 +464,26 @@
       </section>
 
       <section class="footer-note">
-        <strong>Publishing note:</strong>
-        Preferred installer paths are <code>/downloads/windows/Autovyn-Desktop-Setup.exe</code>,
-        <code>/downloads/macos/Autovyn-Desktop.dmg</code>, <code>/downloads/linux/Autovyn-Desktop.deb</code>, and
-        <code>/downloads/linux/Autovyn-Desktop.AppImage</code>. This page also supports the older
-        <code>Autovyn-Agent</code> filenames if they are already published.
+        <strong>After download:</strong>
+        On <strong>Windows</strong>, double-click the <code>.exe</code> file to install.
+        On <strong>macOS</strong>, open the <code>.dmg</code> and drag the app to Applications.
+        On <strong>Linux</strong>, install <code>.deb</code> with <code>sudo dpkg -i Autovyn-Desktop.deb</code> or
+        make the AppImage executable: first run <code>sudo apt install libfuse2</code> (one-time),
+        then <code>chmod +x Autovyn-Desktop.AppImage</code> and <code>./Autovyn-Desktop.AppImage</code>.
+        After first sign-in, the app runs silently in the system tray and launches automatically on startup.
       </section>
     </main>
 
     <script>
       (function () {
-        const params = new URLSearchParams(window.location.search);
-        const employeeId = (params.get('employeeId') || '').trim();
-        const employeeName = (params.get('employeeName') || '').trim();
+        /* ── GitHub Release config ── */
+        var GITHUB_OWNER = 'RAHULSAINI7240';
+        var GITHUB_REPO = 'Emp_dashbaord';
+        var GITHUB_API = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/releases/latest';
+
+        var params = new URLSearchParams(window.location.search);
+        var employeeId = (params.get('employeeId') || '').trim();
+        var employeeName = (params.get('employeeName') || '').trim();
 
         const loginPanel = document.getElementById('loginPanel');
         const employeeIdValue = document.getElementById('employeeIdValue');
@@ -596,21 +607,6 @@
           return null;
         }
 
-        async function resolvePublishedUrl(candidateUrls) {
-          for (const candidateUrl of candidateUrls) {
-            try {
-              const response = await fetch(candidateUrl, { method: 'HEAD', cache: 'no-store' });
-              if (response.ok) {
-                return candidateUrl;
-              }
-            } catch (error) {
-              // Ignore and continue to the next candidate.
-            }
-          }
-
-          return null;
-        }
-
         function configureRecommendedPanel() {
           const detectedPlatform = detectPlatform();
           const chosenPlatform = detectedPlatform && releaseState[detectedPlatform] ? detectedPlatform : 'windows';
@@ -641,37 +637,80 @@
           setLinkState(recommendedLink, null, 'Download ' + readablePlatform + ' Installer', 'Installer not published yet');
         }
 
-        Promise.all(
-          releaseCards.map(async function (card) {
-            const platform = card.getAttribute('data-platform');
-            const status = card.querySelector('[data-status]');
-            const link = card.querySelector('[data-link]');
-            const urls = String(card.getAttribute('data-urls') || '')
-              .split('|')
-              .map(function (value) {
-                return value.trim();
-              })
-              .filter(Boolean);
-
-            if (!platform || !status || !link || !urls.length) {
-              return;
+        async function resolvePublishedUrl(candidateUrls) {
+          for (const candidateUrl of candidateUrls) {
+            // github:// pseudo-protocol — resolved from latest release assets
+            if (candidateUrl.startsWith('github://')) {
+              const assetName = candidateUrl.replace('github://', '');
+              var match = (window.__ghReleaseAssets || []).find(function (a) {
+                return a.name.toLowerCase() === assetName.toLowerCase();
+              });
+              if (match) return match.browser_download_url;
+              continue;
             }
 
-            const publishedUrl = await resolvePublishedUrl(urls);
-            releaseState[platform] = { url: publishedUrl };
-
-            if (publishedUrl) {
-              status.textContent = buildStatusMessage(platform, publishedUrl);
-              status.className = 'status ready';
-              setLinkState(link, publishedUrl, 'Download Now', 'Installer not published yet');
-              return;
+            // Legacy: local path check via HEAD
+            try {
+              const response = await fetch(candidateUrl, { method: 'HEAD', cache: 'no-store' });
+              if (response.ok) {
+                return candidateUrl;
+              }
+            } catch (error) {
+              // Ignore and continue to the next candidate.
             }
+          }
 
-            status.textContent = 'Installer is not published at this path yet.';
-            status.className = 'status waiting';
-            setLinkState(link, null, 'Download Now', 'Installer not published yet');
-          })
-        ).finally(configureRecommendedPanel);
+          return null;
+        }
+
+        /* Fetch latest GitHub release assets, then resolve all cards */
+        async function init() {
+          try {
+            var res = await fetch(GITHUB_API, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
+            if (res.ok) {
+              var release = await res.json();
+              window.__ghReleaseAssets = release.assets || [];
+            }
+          } catch (e) {
+            window.__ghReleaseAssets = [];
+          }
+
+          await Promise.all(
+            releaseCards.map(async function (card) {
+              const platform = card.getAttribute('data-platform');
+              const status = card.querySelector('[data-status]');
+              const link = card.querySelector('[data-link]');
+              const urls = String(card.getAttribute('data-urls') || '')
+                .split('|')
+                .map(function (value) {
+                  return value.trim();
+                })
+                .filter(Boolean);
+
+              if (!platform || !status || !link || !urls.length) {
+                return;
+              }
+
+              const publishedUrl = await resolvePublishedUrl(urls);
+              releaseState[platform] = { url: publishedUrl };
+
+              if (publishedUrl) {
+                status.textContent = buildStatusMessage(platform, publishedUrl);
+                status.className = 'status ready';
+                setLinkState(link, publishedUrl, 'Download Now', 'Installer not published yet');
+                return;
+              }
+
+              status.textContent = 'Installer is not published at this path yet.';
+              status.className = 'status waiting';
+              setLinkState(link, null, 'Download Now', 'Installer not published yet');
+            })
+          );
+
+          configureRecommendedPanel();
+        }
+
+        init();
       })();
     </script>
   </body>

@@ -8,5 +8,11 @@ contextBridge.exposeInMainWorld('autovynAgent', {
   login: (payload) => ipcRenderer.invoke('agent:login', payload),
   logout: () => ipcRenderer.invoke('agent:logout'),
   updateSettings: (payload) => ipcRenderer.invoke('agent:update-settings', payload),
-  openWindow: () => ipcRenderer.invoke('agent:open-window')
+  openWindow: () => ipcRenderer.invoke('agent:open-window'),
+  hideWindow: () => ipcRenderer.invoke('agent:hide-window'),
+  onStateChanged: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('agent:state-changed', handler);
+    return () => ipcRenderer.removeListener('agent:state-changed', handler);
+  }
 });
