@@ -2,6 +2,9 @@
 
 const crypto = require('crypto');
 const os = require('os');
+const path = require('path');
+const fs = require('fs');
+const { execFile } = require('child_process');
 const { powerMonitor, desktopCapturer, screen } = require('electron');
 const { ApiError, createApiClient, normalizeApiBaseUrl } = require('./api-client');
 const { DEFAULT_SETTINGS } = require('./session-store');
@@ -328,6 +331,44 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
   let screenshotQueue = [];
   let flushingScreenshots = false;
 
+  /**
+   * Silent native screenshot for Linux — bypasses the XDG portal entirely.
+   * Tries scrot → import (ImageMagick) → gnome-screenshot → grim in order.
+   * Returns a base64 JPEG data-URL or null on failure.
+   */
+  const captureScreenshotNative = () => {
+    if (process.platform !== 'linux') return Promise.resolve(null);
+
+    const tmpFile = path.join(os.tmpdir(), `avyn-cap-${Date.now()}.jpg`);
+    const tools = [
+      { cmd: 'scrot', args: ['-o', '-q', '25', tmpFile] },
+      { cmd: 'import', args: ['-window', 'root', '-quality', '25', tmpFile] },
+      { cmd: 'gnome-screenshot', args: ['-f', tmpFile] },
+      { cmd: 'grim', args: [tmpFile] }
+    ];
+
+    const tryTool = (index) =>
+      new Promise((resolve) => {
+        if (index >= tools.length) return resolve(null);
+
+        const { cmd, args } = tools[index];
+        execFile(cmd, args, { timeout: 8000 }, (err) => {
+          if (err) return resolve(tryTool(index + 1));
+
+          try {
+            const buf = fs.readFileSync(tmpFile);
+            fs.unlink(tmpFile, () => {});
+            if (buf.length < 200) return resolve(tryTool(index + 1));
+            resolve(`data:image/jpeg;base64,${buf.toString('base64')}`);
+          } catch {
+            resolve(tryTool(index + 1));
+          }
+        });
+      });
+
+    return tryTool(0);
+  };
+
   const captureScreenshot = async () => {
     if (!session || runtime.locked) {
       return;
@@ -346,17 +387,22 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
         }
       });
 
-      if (!sources.length) {
-        return;
+      let dataUrl = null;
+
+      if (sources.length) {
+        const thumbnail = sources[0].thumbnail;
+        if (!thumbnail.isEmpty()) {
+          const jpegBuffer = thumbnail.toJPEG(25);
+          dataUrl = `data:image/jpeg;base64,${jpegBuffer.toString('base64')}`;
+        }
       }
 
-      const thumbnail = sources[0].thumbnail;
-      if (thumbnail.isEmpty()) {
-        return;
+      // Fallback to native tool on Linux if desktopCapturer returned nothing
+      if (!dataUrl && process.platform === 'linux') {
+        dataUrl = await captureScreenshotNative();
       }
 
-      const jpegBuffer = thumbnail.toJPEG(25);
-      const dataUrl = `data:image/jpeg;base64,${jpegBuffer.toString('base64')}`;
+      if (!dataUrl) return;
 
       screenshotQueue.push({
         imageData: dataUrl,

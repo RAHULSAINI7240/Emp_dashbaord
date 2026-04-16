@@ -1,17 +1,23 @@
 'use strict';
 
+// Force X11 on Linux BEFORE importing Electron so desktopCapturer
+// works silently without triggering the Wayland/PipeWire XDG portal
+// "Share Screen" prompt. Environment variables must be set before
+// Electron's app module initialises the Ozone platform backend.
+if (process.platform === 'linux') {
+  process.env.ELECTRON_OZONE_PLATFORM_HINT = 'x11';
+  process.env.XDG_SESSION_TYPE = 'x11';
+}
+
 const path = require('path');
 const { app, BrowserWindow, Menu, Tray, ipcMain, nativeImage } = require('electron');
 const { DEFAULT_API_BASE_URL } = require('./app-config');
 const { createSessionStore } = require('./session-store');
 const { createTrackerAgent } = require('./tracker-agent');
 
-// Force X11 on Linux so desktopCapturer works silently without
-// triggering the Wayland/PipeWire XDG portal "Share Screen" prompt.
 if (process.platform === 'linux') {
   app.commandLine.appendSwitch('ozone-platform', 'x11');
   app.commandLine.appendSwitch('disable-features', 'WaylandWindowDecorations');
-  process.env.ELECTRON_OZONE_PLATFORM_HINT = 'x11';
 }
 
 let mainWindow = null;

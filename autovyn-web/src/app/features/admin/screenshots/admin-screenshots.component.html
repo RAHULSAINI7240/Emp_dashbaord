@@ -53,13 +53,12 @@
   </section>
 
   <!-- Full-screen Preview -->
-  <!-- eslint-disable-next-line -->
-  <div *ngIf="previewUrl" class="preview-backdrop" (click)="closePreview()" (keydown.escape)="closePreview()">
-    <div class="preview-dialog" (click)="$event.stopPropagation()" (keydown.escape)="closePreview()">
-      <button type="button" class="preview-close" (click)="closePreview()">
-        <mat-icon>close</mat-icon>
-      </button>
-      <img [src]="previewUrl" alt="Screenshot preview" />
-    </div>
-  </div>
+  <dialog *ngIf="previewUrl" class="preview-backdrop" open #previewBackdrop
+          (click)="closePreview()" (keydown.escape)="closePreview()">
+    <button type="button" class="preview-close" (click)="$event.stopPropagation(); closePreview()">
+      <mat-icon>close</mat-icon>
+    </button>
+    <img [src]="previewUrl" alt="Screenshot preview"
+         (click)="$event.stopPropagation()" (keydown.escape)="closePreview()" />
+  </dialog>
 </div>

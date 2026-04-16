@@ -164,45 +164,47 @@
   position: fixed;
   inset: 0;
   z-index: 1200;
-  background: rgba(8, 12, 36, 0.7);
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-}
-
-.preview-dialog {
-  position: relative;
-  max-width: 96vw;
-  max-height: 96vh;
-  border-radius: 14px;
-  overflow: hidden;
-  background: #000;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+  outline: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  max-height: none;
 
   img {
     display: block;
-    max-width: 96vw;
-    max-height: 92vh;
+    width: 100vw;
+    height: 100vh;
     object-fit: contain;
   }
 }
 
 .preview-close {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  z-index: 1;
-  width: 36px;
-  height: 36px;
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1201;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   border: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(255, 255, 255, 0.15);
   color: #fff;
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: background 0.2s;
+  backdrop-filter: blur(6px);
+  transition: background 0.2s, transform 0.15s;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
   }
 }

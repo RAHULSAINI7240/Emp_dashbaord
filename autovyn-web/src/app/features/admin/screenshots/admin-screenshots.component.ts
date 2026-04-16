@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { NgFor, NgIf, DatePipe, SlicePipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { Subscription } from 'rxjs';
@@ -13,12 +13,15 @@ import { User } from '../../../shared/models/user.model';
   styleUrls: ['./admin-screenshots.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AdminScreenshotsComponent implements OnDestroy {
+export class AdminScreenshotsComponent implements OnDestroy, AfterViewChecked {
   employees: User[] = [];
   selectedEmployee: User | null = null;
   screenshots: ScreenshotEntry[] = [];
   loading = false;
   previewUrl: string | null = null;
+
+  @ViewChild('previewBackdrop') previewBackdrop?: ElementRef<HTMLElement>;
+  private needsFocus = false;
 
   private subscription: Subscription | null = null;
   private streamAbortController: AbortController | null = null;
@@ -67,8 +70,16 @@ export class AdminScreenshotsComponent implements OnDestroy {
       });
   }
 
+  ngAfterViewChecked(): void {
+    if (this.needsFocus && this.previewBackdrop) {
+      this.previewBackdrop.nativeElement.focus();
+      this.needsFocus = false;
+    }
+  }
+
   openPreview(url: string): void {
     this.previewUrl = url;
+    this.needsFocus = true;
     this.cdr.markForCheck();
   }
 
