@@ -89,19 +89,28 @@ Important values:
 - `ARS_APPROVER_MODE=ADMIN|MANAGER|AUTO`
 - `CORS_ORIGIN=http://localhost:4200,https://emp-dashboard-frontend.onrender.com`
 - `TRUST_PROXY=1` when deployed behind Render/reverse proxies so rate limiting uses the real client IP
-- `BOOTSTRAP_CORE_USERS=false` only if you want to disable the built-in startup-created Admin/HR/Manager accounts
+- Startup core users now default to `EMPTY_DB` behavior: starter Admin/HR/Manager accounts are only created when the users table is empty
+- `BOOTSTRAP_CORE_USERS=true` forces the starter Admin/HR/Manager accounts on every boot
+- `BOOTSTRAP_CORE_USERS=false` disables startup-created starter accounts completely
+- `BOOTSTRAP_CORE_USERS_MODE=EMPTY_DB|ALWAYS` lets you choose the bootstrap mode explicitly
 - Optional live demo login: set `DEMO_LOGIN_ID` and `DEMO_PASSWORD` on Render to auto-create/refresh a known account at startup
 
 ## Seed Users
 - `npm run db:seed` imports the bundled dummy CSV at `prisma/data/dummy-autovyn-users.csv`.
-- The backend also auto-creates fixed core login accounts on startup, even without running `db:seed`.
+- For real employee data, import your sheet instead of relying on the bundled dummy CSV.
+- `npm run db:import:users:xlsx -- /absolute/path/to/AUTOVYN_UserList.xlsx`
+- `npm run db:import:users:csv -- /absolute/path/to/users.csv`
+- The XLSX importer accepts the current Autovyn sheet structure directly, including `UserName` login IDs when `EmployeeID` is blank.
+- Passwords come from the spreadsheet `UserPassword` column by default, with login ID fallback when the cell is blank.
+- Manager relationships come from `ReportingAuthorityID`, and manager permissions come from `IsReportingAuthority`.
+- If the sheet does not contain explicit Admin/HR role labels, you can guide the importer with `IMPORT_ADMIN_LOGIN_IDS`, `IMPORT_HR_LOGIN_IDS`, and `IMPORT_HR_DESIGNATION_IDS`.
+- Starter core login accounts are now only auto-created on startup when the database has no existing users.
 - Static core accounts:
   - `Admin`: `VYN01` / `Admin@123`
   - `HR`: `VYN02` / `Hr@12345`
   - `Manager`: `VYN03` / `Manager@123`
 - `npm run db:core-users` is the safe production command to upsert only those three accounts into Atlas/Render without importing dummy employees.
-- Employee login uses the CSV `EmployeeID` values such as `EMP1001`.
-- Passwords come from the CSV `UserPassword` column by default.
+- Imported employee login uses `EmployeeID` when present, otherwise it falls back to `UserName`.
 
 ## Authentication
 - `POST /auth/login`
@@ -208,10 +217,11 @@ curl -X POST http://localhost:3001/api/auth/login \
 ```
 
 ### Render startup users
-The backend now auto-creates the core login accounts on startup by default. Use these environment variables only if you want to override the default IDs/passwords:
+The backend now bootstraps the core login accounts only when the users table is empty. Use these environment variables only if you want to override the default IDs/passwords or change the bootstrap mode:
 ```env
 CORS_ORIGIN=http://localhost:4200,https://emp-dashboard-frontend.onrender.com
 TRUST_PROXY=1
+BOOTSTRAP_CORE_USERS_MODE=EMPTY_DB
 BOOTSTRAP_ADMIN_LOGIN_ID=VYN01
 BOOTSTRAP_ADMIN_PASSWORD=Admin@123
 BOOTSTRAP_HR_LOGIN_ID=VYN02

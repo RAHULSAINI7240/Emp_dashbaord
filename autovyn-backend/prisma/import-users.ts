@@ -3,9 +3,16 @@ import path from 'path';
 import bcrypt from 'bcryptjs';
 import { AttendanceStatus, Permission, PrismaClient, Role, WorkMode } from '@prisma/client';
 
-const ADMIN_LOGIN_IDS = new Set(['VYNCOO', 'VYNCFO', 'VYNCTO', 'VYNCEO']);
-const HR_LOGIN_IDS = new Set(['VYN210', 'VYN142']);
-const MANAGER_LOGIN_IDS = new Set(['VYN075']);
+const DEFAULT_ADMIN_LOGIN_ID_OVERRIDES = ['VYNCOO', 'VYNCFO', 'VYNCTO', 'VYNCEO'];
+const DEFAULT_HR_LOGIN_ID_OVERRIDES = ['VYN210', 'VYN142'];
+const ADMIN_LOGIN_SUFFIX_REGEX = /(ADMIN|CEO|COO|CFO|CTO)$/i;
+const ADMIN_ROLE_HINT_REGEX = /\b(admin(?:istrator)?|ceo|coo|cfo|cto|director|founder)\b/i;
+const HR_ROLE_HINT_REGEX = /\b(hr|human\s*resources?|talent\s*acquisition|recruit(?:er|ment))\b/i;
+const MANAGER_ROLE_HINT_REGEX = /\b(manager|team\s*lead|reporting\s*authority)\b/i;
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const DMY_DATE_REGEX = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/;
+const EXCEL_SERIAL_REGEX = /^\d+(?:\.\d+)?$/;
+const EXCEL_EPOCH_UTC = Date.UTC(1899, 11, 30);
 
 const normalize = (value: string | undefined): string => {
   if (!value) return '';
@@ -18,6 +25,28 @@ const normalizeHeader = (value: string): string =>
   value
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '');
+
+const splitList = (value: string | undefined): string[] =>
+  (value ?? '')
+    .split(',')
+    .map((entry) => normalize(entry))
+    .filter(Boolean);
+
+const normalizeLoginId = (value: string): string => normalize(value).toUpperCase();
+
+const buildConfiguredLoginIdSet = (value: string | undefined, fallback: string[]): Set<string> => {
+  const configured = splitList(value).map((entry) => entry.toUpperCase());
+  return new Set(configured.length ? configured : fallback);
+};
+
+const ADMIN_LOGIN_ID_OVERRIDES = buildConfiguredLoginIdSet(
+  process.env.IMPORT_ADMIN_LOGIN_IDS,
+  DEFAULT_ADMIN_LOGIN_ID_OVERRIDES
+);
+
+const HR_LOGIN_ID_OVERRIDES = buildConfiguredLoginIdSet(process.env.IMPORT_HR_LOGIN_IDS, DEFAULT_HR_LOGIN_ID_OVERRIDES);
+
+const HR_DESIGNATION_ID_OVERRIDES = new Set(splitList(process.env.IMPORT_HR_DESIGNATION_IDS));
 
 const parseCsv = (input: string): string[][] => {
   const rows: string[][] = [];
@@ -76,6 +105,50 @@ const parseWorkMode = (raw: string): WorkMode => {
   return WorkMode.WFO;
 };
 
+const parseBooleanFlag = (raw: string): boolean | null => {
+  const value = normalize(raw).toLowerCase();
+  if (!value) return null;
+  if (['1', 'true', 'yes', 'y', 'on'].includes(value)) return true;
+  if (['0', 'false', 'no', 'n', 'off'].includes(value)) return false;
+  return null;
+};
+
+const toIsoDateOnlyUtc = (value: Date): string => value.toISOString().slice(0, 10);
+
+const parseExcelSerialDate = (raw: string): string | null => {
+  if (!EXCEL_SERIAL_REGEX.test(raw)) return null;
+
+  const numeric = Number(raw);
+  if (!Number.isFinite(numeric) || numeric <= 0) return null;
+
+  const wholeDays = Math.floor(numeric);
+  const date = new Date(EXCEL_EPOCH_UTC + wholeDays * 24 * 60 * 60 * 1000);
+  return toIsoDateOnlyUtc(date);
+};
+
+const normalizeImportedDate = (raw: string): string | null => {
+  const value = normalize(raw);
+  if (!value) return null;
+  if (ISO_DATE_REGEX.test(value)) return value;
+
+  const serialDate = parseExcelSerialDate(value);
+  if (serialDate) return serialDate;
+
+  const dmyMatch = value.match(DMY_DATE_REGEX);
+  if (dmyMatch) {
+    const [, day, month, year] = dmyMatch;
+    const parsed = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+    return Number.isNaN(parsed.getTime()) ? value : toIsoDateOnlyUtc(parsed);
+  }
+
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) {
+    return toIsoDateOnlyUtc(parsed);
+  }
+
+  return value;
+};
+
 const resolvePermissions = (role: Role, isReportingAuthority: boolean): Permission[] => {
   if (role === Role.ADMIN) {
     return [
@@ -96,10 +169,40 @@ const resolvePermissions = (role: Role, isReportingAuthority: boolean): Permissi
   return [Permission.VIEW_TEAM];
 };
 
-const resolveRole = (loginId: string): Role => {
-  if (ADMIN_LOGIN_IDS.has(loginId)) return Role.ADMIN;
-  if (HR_LOGIN_IDS.has(loginId)) return Role.HR;
+const resolveRole = (input: {
+  designationId: string;
+  email: string;
+  loginId: string;
+  roleHints: string[];
+}): Role => {
+  const emailLocalPart = input.email.split('@')[0]?.trim().toLowerCase() ?? '';
+  const roleHintText = input.roleHints
+    .map((hint) => normalize(hint))
+    .filter(Boolean)
+    .join(' ');
+
+  if (ADMIN_LOGIN_ID_OVERRIDES.has(input.loginId)) return Role.ADMIN;
+  if (ADMIN_LOGIN_SUFFIX_REGEX.test(input.loginId)) return Role.ADMIN;
+  if (ADMIN_ROLE_HINT_REGEX.test(roleHintText)) return Role.ADMIN;
+
+  if (HR_LOGIN_ID_OVERRIDES.has(input.loginId)) return Role.HR;
+  if (HR_DESIGNATION_ID_OVERRIDES.has(input.designationId)) return Role.HR;
+  if (emailLocalPart === 'hr') return Role.HR;
+  if (HR_ROLE_HINT_REGEX.test(roleHintText)) return Role.HR;
+
   return Role.EMPLOYEE;
+};
+
+const resolveReportingAuthority = (rawFlag: string, roleHints: string[]): boolean => {
+  const parsedFlag = parseBooleanFlag(rawFlag);
+  if (parsedFlag !== null) return parsedFlag;
+
+  const roleHintText = roleHints
+    .map((hint) => normalize(hint))
+    .filter(Boolean)
+    .join(' ');
+
+  return MANAGER_ROLE_HINT_REGEX.test(roleHintText);
 };
 
 const toDateOnlyUtc = (value: Date): Date =>
@@ -229,7 +332,7 @@ export const importUsersFromCsv = async (options: ImportUsersFromCsvOptions): Pr
       };
 
       const legacyUserId = get('Userid');
-      const loginId = (getAny('EmployeeID', 'EmployeeId', 'EmployeeCode') || get('UserName')).toUpperCase();
+      const loginId = normalizeLoginId(getAny('EmployeeID', 'EmployeeId', 'EmployeeCode') || get('UserName'));
       if (!loginId) {
         continue;
       }
@@ -253,11 +356,22 @@ export const importUsersFromCsv = async (options: ImportUsersFromCsvOptions): Pr
       }
 
       const passwordHash = await bcrypt.hash(passwordText, saltRounds);
-      const role = resolveRole(loginId);
-      const isReportingAuthority = get('IsReportingAuthority') === '1' || MANAGER_LOGIN_IDS.has(loginId);
+      const rawEmail = (get('OfficialEmailID') || get('EmailID')).toLowerCase();
+      const roleHints = [
+        getAny('Role', 'RoleID', 'RoleName', 'Designation', 'DesignationName'),
+        getAny('Department', 'DepartmentName', 'Team', 'Teams'),
+        rawEmail,
+        loginId
+      ];
+      const role = resolveRole({
+        loginId,
+        email: rawEmail,
+        designationId: get('DesignationID'),
+        roleHints
+      });
+      const isReportingAuthority = resolveReportingAuthority(get('IsReportingAuthority'), roleHints);
       const permissions = resolvePermissions(role, isReportingAuthority);
 
-      const rawEmail = (get('OfficialEmailID') || get('EmailID')).toLowerCase();
       let email: string | null = rawEmail || null;
       if (email) {
         if (seenEmails.has(email)) {
@@ -278,8 +392,8 @@ export const importUsersFromCsv = async (options: ImportUsersFromCsvOptions): Pr
             ? `Department-${getAny('Department', 'Team', 'Teams', 'TeamsID')}`
             : null,
           profilePhotoUrl: getAny('ProfilePhotoUrl', 'ProfilePhoto', 'PhotoUrl', 'Photo', 'ImageUrl', 'Image') || null,
-          joiningDate: getAny('JoiningDate', 'DateOfJoining') || null,
-          dateOfBirth: getAny('DateOfBirth', 'DOB', 'BirthDate') || null,
+          joiningDate: normalizeImportedDate(getAny('JoiningDate', 'DateOfJoining')),
+          dateOfBirth: normalizeImportedDate(getAny('DateOfBirth', 'DOB', 'BirthDate')),
           gender: getAny('Gender') || null,
           bloodGroup: getAny('BloodGroup', 'Blood Group') || null,
           emergencyContact:
@@ -292,12 +406,12 @@ export const importUsersFromCsv = async (options: ImportUsersFromCsvOptions): Pr
             ) || null,
           address: getAny('Address', 'CurrentAddress', 'PermanentAddress') || null,
           designation: get('DesignationID') ? `Designation-${get('DesignationID')}` : role === Role.HR ? 'HR' : 'Employee',
-          city: get('Branch') || 'Unknown',
+          city: get('Branch') && get('Branch') !== '0' ? get('Branch') : 'Unknown',
           workMode: parseWorkMode(get('WorkMode')),
           role,
           permissions,
           passwordHash,
-          isActive: true
+          isActive: parseBooleanFlag(get('IsActive')) ?? true
         }
       });
 

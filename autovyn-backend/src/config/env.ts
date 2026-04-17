@@ -92,6 +92,7 @@ const envSchema = z.object({
   ARS_APPROVER_MODE: z.enum(['ADMIN', 'MANAGER', 'AUTO']).default('ADMIN'),
   TRUST_PROXY: z.string().optional(),
   BOOTSTRAP_CORE_USERS: z.string().optional(),
+  BOOTSTRAP_CORE_USERS_MODE: z.enum(['ALWAYS', 'EMPTY_DB']).optional(),
   BOOTSTRAP_ADMIN_LOGIN_ID: z.string().trim().min(3).optional(),
   BOOTSTRAP_ADMIN_PASSWORD: z.string().min(1).optional(),
   BOOTSTRAP_HR_LOGIN_ID: z.string().trim().min(3).optional(),
@@ -122,4 +123,14 @@ if (env.NODE_ENV === 'production' && corsOrigins.every((origin) => isLikelyLocal
 
 export const trustProxy = parseTrustProxy(env.TRUST_PROXY) ?? (env.NODE_ENV === 'production' ? 1 : false);
 
-export const bootstrapCoreUsersEnabled = parseBooleanFlag(env.BOOTSTRAP_CORE_USERS) ?? true;
+type BootstrapCoreUsersMode = 'DISABLED' | 'ALWAYS' | 'EMPTY_DB';
+
+const resolveBootstrapCoreUsersMode = (): BootstrapCoreUsersMode => {
+  const explicitFlag = parseBooleanFlag(env.BOOTSTRAP_CORE_USERS);
+  if (explicitFlag === false) return 'DISABLED';
+  if (explicitFlag === true) return 'ALWAYS';
+  return env.BOOTSTRAP_CORE_USERS_MODE ?? 'EMPTY_DB';
+};
+
+export const bootstrapCoreUsersMode = resolveBootstrapCoreUsersMode();
+export const bootstrapCoreUsersEnabled = bootstrapCoreUsersMode !== 'DISABLED';

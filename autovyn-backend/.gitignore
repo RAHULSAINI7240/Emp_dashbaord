@@ -1,5 +1,7 @@
 node_modules
 .env
+.mongo-data
+.tmp-prisma-dist
 dist
 coverage
 npm-debug.log*

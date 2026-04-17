@@ -1,6 +1,6 @@
 import { Permission, Prisma, Role } from '@prisma/client';
 import { prisma } from '../db/prisma';
-import { bootstrapCoreUsersEnabled, env } from '../config/env';
+import { bootstrapCoreUsersMode, env } from '../config/env';
 import { hashPassword } from '../utils/password';
 import { defaultDesignationByRole, defaultPermissionsByRole, normalizeWorkMode } from '../utils/user-defaults';
 
@@ -107,7 +107,7 @@ const ensureBootstrappedUser = async (
 };
 
 const resolveCoreUserPayloads = (): BootstrappedUserPayload[] => {
-  if (!bootstrapCoreUsersEnabled) {
+  if (bootstrapCoreUsersMode === 'DISABLED') {
     return [];
   }
 
@@ -202,6 +202,14 @@ const bootstrapCoreUsers = async (): Promise<Set<string>> => {
   const payloads = resolveCoreUserPayloads();
   if (!payloads.length) {
     return new Set();
+  }
+
+  if (bootstrapCoreUsersMode === 'EMPTY_DB') {
+    const existingUsers = await prisma.user.count();
+    if (existingUsers > 0) {
+      console.log('Skipping core-user bootstrap because real users already exist in the database.');
+      return new Set();
+    }
   }
 
   const usersByLoginId = new Map<string, { id: string; loginId: string }>();

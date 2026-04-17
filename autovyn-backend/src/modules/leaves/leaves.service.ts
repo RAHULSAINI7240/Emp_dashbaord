@@ -123,9 +123,6 @@ const calculateUnits = (duration: 'FULL_DAY' | 'HALF_DAY', dates: string[]): num
 const canUserApproveLeave = (user: { role: Role; permissions: Permission[]; isActive: boolean }): boolean =>
   user.isActive && (user.role === 'ADMIN' || hasLeaveApprovalAccess(user.permissions));
 
-const DEFAULT_LEAVE_ADMIN_ID = 'VYN01';
-const DEFAULT_LEAVE_ADMIN_NAME = 'Vikash Yadav';
-
 const getEligibleApproversForEmployee = async (employeeId: string): Promise<{
   approvers: Array<{ id: string; name: string; role: Role; permissions: Permission[]; isActive: boolean }>;
   defaultApproverId: string | null;
@@ -150,9 +147,7 @@ const getEligibleApproversForEmployee = async (employeeId: string): Promise<{
     }
   }
 
-  const defaultAdmin =
-    (await usersRepository.findByAdminId(DEFAULT_LEAVE_ADMIN_ID)) ??
-    (await usersRepository.findByName(DEFAULT_LEAVE_ADMIN_NAME));
+  const defaultAdmin = await leavesRepository.findFirstActiveAdmin();
 
   if (defaultAdmin && defaultAdmin.id !== employee.id && canUserApproveLeave(defaultAdmin)) {
     eligible.set(defaultAdmin.id, defaultAdmin);

@@ -8,6 +8,23 @@ interface ListParams {
 }
 
 export const leavesRepository = {
+  findFirstActiveAdmin() {
+    return prisma.user.findFirst({
+      where: {
+        isActive: true,
+        role: 'ADMIN'
+      },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        permissions: true,
+        isActive: true
+      },
+      orderBy: [{ name: 'asc' }]
+    });
+  },
+
   findApproverById(approverId: string) {
     return prisma.user.findUnique({
       where: { id: approverId },
