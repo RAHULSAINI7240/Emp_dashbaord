@@ -16,7 +16,8 @@ const DEFAULT_STATE = {
   deviceId: null,
   session: null,
   settings: DEFAULT_SETTINGS,
-  pendingHeartbeats: []
+  pendingHeartbeats: [],
+  pendingScreenshots: []
 };
 
 const mergeState = (state) => ({
@@ -26,7 +27,8 @@ const mergeState = (state) => ({
     ...DEFAULT_SETTINGS,
     ...(state && state.settings ? state.settings : {})
   },
-  pendingHeartbeats: Array.isArray(state && state.pendingHeartbeats) ? state.pendingHeartbeats : []
+  pendingHeartbeats: Array.isArray(state && state.pendingHeartbeats) ? state.pendingHeartbeats : [],
+  pendingScreenshots: Array.isArray(state && state.pendingScreenshots) ? state.pendingScreenshots : []
 });
 
 const encodePayload = (value) => {

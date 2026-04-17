@@ -12,7 +12,11 @@ const { DEFAULT_SETTINGS } = require('./session-store');
 const MIN_HEARTBEAT_SECONDS = 10;
 const MAX_HEARTBEAT_SECONDS = 600;
 const EVALUATION_INTERVAL_MS = 5000;
-const SCREENSHOT_INTERVAL_MS = 2000;
+const SCREENSHOT_INTERVAL_MS = 60 * 1000;
+const SCREENSHOT_FLUSH_INTERVAL_MS = 10 * 1000;
+const SCREENSHOT_UPLOAD_BATCH_SIZE = 50;
+const SCREENSHOT_RETENTION_MS = 2 * 24 * 60 * 60 * 1000;
+const MAX_PENDING_SCREENSHOTS = 3000;
 
 const createRuntime = () => {
   const now = Date.now();
@@ -40,6 +44,7 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
   let evaluationHandle = null;
   let flushHandle = null;
   let screenshotHandle = null;
+  let screenshotFlushHandle = null;
   let refreshPromise = null;
   let powerEventsBound = false;
 
@@ -51,7 +56,8 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
       deviceId,
       session,
       settings,
-      pendingHeartbeats: Array.isArray(current.pendingHeartbeats) ? current.pendingHeartbeats : []
+      pendingHeartbeats: Array.isArray(current.pendingHeartbeats) ? current.pendingHeartbeats : [],
+      pendingScreenshots: Array.isArray(current.pendingScreenshots) ? current.pendingScreenshots : []
     }));
   };
 
@@ -61,7 +67,19 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
       deviceId,
       session,
       settings,
-      pendingHeartbeats: payloads
+      pendingHeartbeats: payloads,
+      pendingScreenshots: Array.isArray(current.pendingScreenshots) ? current.pendingScreenshots : []
+    }));
+  };
+
+  const setPendingScreenshots = (items) => {
+    persisted = store.updateState((current) => ({
+      ...current,
+      deviceId,
+      session,
+      settings,
+      pendingHeartbeats: Array.isArray(current.pendingHeartbeats) ? current.pendingHeartbeats : [],
+      pendingScreenshots: items
     }));
   };
 
@@ -95,6 +113,31 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
   };
 
   const getTrackedSeconds = () => Math.floor((runtime.activeMs + runtime.idleMs) / 1000);
+
+  const isScreenshotFresh = (capturedAt) => {
+    const capturedMs = new Date(capturedAt).getTime();
+    if (Number.isNaN(capturedMs)) {
+      return false;
+    }
+
+    return Date.now() - capturedMs <= SCREENSHOT_RETENTION_MS;
+  };
+
+  const normalizeScreenshotQueue = (items) => (
+    (Array.isArray(items) ? items : [])
+      .filter((item) => (
+        item &&
+        typeof item.imageData === 'string' &&
+        typeof item.capturedAt === 'string' &&
+        isScreenshotFresh(item.capturedAt)
+      ))
+      .slice(-MAX_PENDING_SCREENSHOTS)
+  );
+
+  const saveScreenshotQueue = (items) => {
+    screenshotQueue = normalizeScreenshotQueue(items);
+    setPendingScreenshots(screenshotQueue);
+  };
 
   const evaluateTime = () => {
     const now = Date.now();
@@ -231,7 +274,7 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
       if (error instanceof ApiError && error.statusCode === 401) {
         const refreshed = await refreshSession().catch(() => null);
         if (!refreshed) {
-          throw new Error('Session expired. Please sign in again.');
+          throw new Error('Tracking continues locally. Authentication will be retried automatically.');
         }
 
         await trySend();
@@ -317,6 +360,45 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
   };
 
   const setAutoLaunch = (enabled) => {
+    if (process.platform === 'linux') {
+      const autostartDir = path.join(app.getPath('home'), '.config', 'autostart');
+      const desktopFilePath = path.join(autostartDir, 'autovyn-desktop.desktop');
+      const quoteDesktopExecArg = (value) => `"${String(value).replace(/(["\\`$])/g, '\\$1')}"`;
+      const execParts = [quoteDesktopExecArg(process.execPath)];
+
+      if (!app.isPackaged) {
+        execParts.push(quoteDesktopExecArg(app.getAppPath()));
+      }
+
+      execParts.push('--autostart');
+      execParts.push('--hidden');
+
+      const desktopEntry = [
+        '[Desktop Entry]',
+        'Type=Application',
+        'Version=1.0',
+        'Name=Autovyn Desktop',
+        'Comment=Autovyn background tracker',
+        `Exec=${execParts.join(' ')}`,
+        'Terminal=false',
+        'X-GNOME-Autostart-enabled=true',
+        'StartupNotify=false'
+      ].join('\n');
+
+      try {
+        if (enabled) {
+          fs.mkdirSync(autostartDir, { recursive: true });
+          fs.writeFileSync(desktopFilePath, `${desktopEntry}\n`, 'utf8');
+        } else if (fs.existsSync(desktopFilePath)) {
+          fs.unlinkSync(desktopFilePath);
+        }
+      } catch {
+        // Ignore unsupported desktop environments during local development.
+      }
+
+      return;
+    }
+
     try {
       app.setLoginItemSettings({
         openAtLogin: Boolean(enabled),
@@ -328,7 +410,7 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
     }
   };
 
-  let screenshotQueue = [];
+  let screenshotQueue = normalizeScreenshotQueue(persisted.pendingScreenshots);
   let flushingScreenshots = false;
 
   /**
@@ -404,11 +486,12 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
 
       if (!dataUrl) return;
 
-      screenshotQueue.push({
+      saveScreenshotQueue([...screenshotQueue, {
         imageData: dataUrl,
         deviceId,
         capturedAt: new Date().toISOString()
-      });
+      }]);
+      void flushScreenshots();
     } catch {
       // Silently ignore capture failures.
     }
@@ -420,28 +503,34 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
     }
 
     flushingScreenshots = true;
-    const batch = screenshotQueue.splice(0);
+    saveScreenshotQueue(screenshotQueue);
 
     try {
-      const trySend = async () => {
-        await api.postScreenshots(session.accessToken, batch);
-      };
+      while (session && screenshotQueue.length) {
+        const batch = screenshotQueue.slice(0, SCREENSHOT_UPLOAD_BATCH_SIZE);
+        const trySend = async () => {
+          await api.postScreenshots(session.accessToken, batch);
+        };
 
-      try {
-        await trySend();
-      } catch (error) {
-        if (error instanceof ApiError && error.statusCode === 401) {
-          const refreshed = await refreshSession().catch(() => null);
-          if (refreshed) {
-            await trySend().catch(() => undefined);
-          } else {
-            // Put back in queue if auth failed permanently
-            screenshotQueue.unshift(...batch);
+        try {
+          await trySend();
+          saveScreenshotQueue(screenshotQueue.slice(batch.length));
+        } catch (error) {
+          if (error instanceof ApiError && error.statusCode === 401) {
+            const refreshed = await refreshSession().catch(() => null);
+            if (refreshed) {
+              await trySend();
+              saveScreenshotQueue(screenshotQueue.slice(batch.length));
+              continue;
+            }
           }
+
+          saveScreenshotQueue(screenshotQueue);
+          break;
         }
       }
     } catch {
-      // Silently ignore upload failures.
+      saveScreenshotQueue(screenshotQueue);
     } finally {
       flushingScreenshots = false;
     }
@@ -482,6 +571,7 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
       settings = { ...DEFAULT_SETTINGS, ...persisted.settings };
       session = persisted.session;
       deviceId = persisted.deviceId || deviceId;
+      screenshotQueue = normalizeScreenshotQueue(persisted.pendingScreenshots);
 
       persistState();
       setAutoLaunch(settings.launchAtLogin);
@@ -491,8 +581,9 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
       evaluationHandle = setInterval(evaluateTime, EVALUATION_INTERVAL_MS);
       flushHandle = setInterval(flush, Math.max(10, Number(settings.heartbeatIntervalSeconds) || 10) * 1000);
       screenshotHandle = setInterval(captureScreenshot, SCREENSHOT_INTERVAL_MS);
-      setInterval(flushScreenshots, 10000);
+      screenshotFlushHandle = setInterval(flushScreenshots, SCREENSHOT_FLUSH_INTERVAL_MS);
       if (session) {
+        void flushScreenshots();
         // Validate the persisted session by refreshing the token.
         // If it fails, keep the old session and try again on next flush.
         refreshSession()
@@ -516,6 +607,11 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
       if (screenshotHandle) {
         clearInterval(screenshotHandle);
         screenshotHandle = null;
+      }
+
+      if (screenshotFlushHandle) {
+        clearInterval(screenshotFlushHandle);
+        screenshotFlushHandle = null;
       }
     },
 
@@ -552,6 +648,7 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
 
       session = null;
       setPendingHeartbeats([]);
+      saveScreenshotQueue([]);
       persistState();
       resetRuntime();
       emitChange();

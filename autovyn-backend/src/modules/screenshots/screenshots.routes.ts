@@ -3,7 +3,13 @@ import { authenticate } from '../../middleware/auth.middleware';
 import { requireRoles } from '../../middleware/rbac.middleware';
 import { validate } from '../../middleware/validate.middleware';
 import { screenshotsController } from './screenshots.controller';
-import { screenshotUploadSchema, screenshotBatchUploadSchema, screenshotListQuerySchema } from './screenshots.schema';
+import {
+  screenshotUploadSchema,
+  screenshotBatchUploadSchema,
+  screenshotListQuerySchema,
+  screenshotRecentQuerySchema,
+  screenshotStreamQuerySchema
+} from './screenshots.schema';
 
 const router = Router();
 
@@ -18,7 +24,10 @@ router.post('/screenshots/upload-batch', validate(screenshotBatchUploadSchema), 
 // Admin fetches screenshots for an employee on a given date
 router.get('/screenshots', requireRoles('ADMIN'), validate(screenshotListQuerySchema, 'query'), screenshotsController.list);
 
+// Admin fetches recent screenshots for an employee
+router.get('/screenshots/recent', requireRoles('ADMIN'), validate(screenshotRecentQuerySchema, 'query'), screenshotsController.recent);
+
 // Admin subscribes to live screenshot stream
-router.get('/screenshots/stream', requireRoles('ADMIN'), screenshotsController.stream);
+router.get('/screenshots/stream', requireRoles('ADMIN'), validate(screenshotStreamQuerySchema, 'query'), screenshotsController.stream);
 
 export default router;

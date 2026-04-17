@@ -3,7 +3,7 @@
   <section class="panel-card" *ngIf="!selectedEmployee">
     <div class="section-head">
       <h2><mat-icon>screenshot_monitor</mat-icon>Employee Screenshots</h2>
-      <p>Select an employee to view today's screen captures.</p>
+      <p>Select an employee to view the last {{ recentWindowDays }} days of screen captures.</p>
     </div>
 
     <div class="employee-list">
@@ -31,7 +31,7 @@
       </button>
       <div>
         <h2><mat-icon>screenshot_monitor</mat-icon>{{ selectedEmployee.name }}</h2>
-        <p>Screenshots captured today ({{ todayDate }}). Updates live without refresh.</p>
+        <p>Showing the last {{ recentWindowDays }} days of screenshots. New captures still appear live without refresh.</p>
       </div>
     </div>
 
@@ -41,13 +41,13 @@
       <button type="button" *ngFor="let shot of screenshots" class="screenshot-card" (click)="openPreview(shot.imageData)">
         <img [src]="shot.imageData" alt="Screenshot" loading="lazy" />
         <div class="screenshot-meta">
-          <span><mat-icon>schedule</mat-icon>{{ shot.capturedAt | date: 'hh:mm:ss a' }}</span>
+          <span><mat-icon>schedule</mat-icon>{{ shot.capturedAt | date: 'dd MMM, hh:mm:ss a' }}</span>
           <span *ngIf="shot.deviceId"><mat-icon>computer</mat-icon>{{ shot.deviceId | slice:0:20 }}</span>
         </div>
       </button>
 
       <p class="empty-state" *ngIf="!screenshots.length">
-        No screenshots captured today. Screenshots appear here automatically when the desktop agent is running.
+        No screenshots were captured in the last {{ recentWindowDays }} days. Screenshots appear here automatically when the desktop agent is running.
       </p>
     </div>
   </section>

@@ -33,9 +33,19 @@ export class ScreenshotService {
       );
   }
 
+  getRecentByUser(userId: string, days = 2): Observable<ScreenshotEntry[]> {
+    const params = new HttpParams().set('userId', userId).set('days', String(days));
+    return this.http
+      .get<ApiResponse<ScreenshotEntry[]>>(`${this.apiBase}/screenshots/recent`, { params })
+      .pipe(
+        map((response) => response.data),
+        catchError(() => of([]))
+      );
+  }
+
   async connectStream(
     userId: string,
-    date: string,
+    days: number,
     onScreenshots: (items: ScreenshotEntry[]) => void,
     signal?: AbortSignal
   ): Promise<void> {
@@ -46,7 +56,7 @@ export class ScreenshotService {
 
     const url = new URL(`${this.apiBase}/screenshots/stream`);
     url.searchParams.set('userId', userId);
-    url.searchParams.set('date', date);
+    url.searchParams.set('days', String(days));
 
     const response = await fetch(url.toString(), {
       method: 'GET',

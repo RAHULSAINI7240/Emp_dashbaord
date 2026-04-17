@@ -23,3 +23,13 @@ export const screenshotListQuerySchema = z.object({
   userId: z.string().trim().min(1),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
 });
+
+export const screenshotRecentQuerySchema = z.object({
+  userId: z.string().trim().min(1),
+  days: z.coerce.number().int().min(1).max(30).default(2)
+});
+
+export const screenshotStreamQuerySchema = z.object({
+  userId: z.string().trim().min(1),
+  days: z.coerce.number().int().min(1).max(30).default(2)
+});

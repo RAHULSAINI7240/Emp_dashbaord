@@ -14,6 +14,7 @@ import { User } from '../../../shared/models/user.model';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminScreenshotsComponent implements OnDestroy, AfterViewChecked {
+  readonly recentWindowDays = 2;
   employees: User[] = [];
   selectedEmployee: User | null = null;
   screenshots: ScreenshotEntry[] = [];
@@ -43,14 +44,6 @@ export class AdminScreenshotsComponent implements OnDestroy, AfterViewChecked {
     this.disconnectStream();
   }
 
-  get todayDate(): string {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  }
-
   selectEmployee(user: User): void {
     this.selectedEmployee = user;
     this.screenshots = [];
@@ -61,9 +54,9 @@ export class AdminScreenshotsComponent implements OnDestroy, AfterViewChecked {
     this.disconnectStream();
 
     this.subscription = this.screenshotService
-      .getByUserAndDate(user.id, this.todayDate)
+      .getRecentByUser(user.id, this.recentWindowDays)
       .subscribe((items) => {
-        this.screenshots = items;
+        this.screenshots = this.sortScreenshots(items);
         this.loading = false;
         this.cdr.markForCheck();
         this.connectLiveStream();
@@ -105,12 +98,12 @@ export class AdminScreenshotsComponent implements OnDestroy, AfterViewChecked {
     void this.screenshotService
       .connectStream(
         this.selectedEmployee.id,
-        this.todayDate,
+        this.recentWindowDays,
         (items) => {
           const existingIds = new Set(this.screenshots.map((s) => s.id));
           const newItems = items.filter((item) => !existingIds.has(item.id));
           if (newItems.length > 0) {
-            this.screenshots = [...newItems, ...this.screenshots];
+            this.screenshots = this.sortScreenshots([...newItems, ...this.screenshots]);
             this.cdr.markForCheck();
           }
         },
@@ -134,5 +127,9 @@ export class AdminScreenshotsComponent implements OnDestroy, AfterViewChecked {
       this.streamAbortController.abort();
       this.streamAbortController = null;
     }
+  }
+
+  private sortScreenshots(items: ScreenshotEntry[]): ScreenshotEntry[] {
+    return [...items].sort((a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime());
   }
 }
