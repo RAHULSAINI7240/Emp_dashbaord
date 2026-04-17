@@ -17,7 +17,7 @@ export class AdminLayoutComponent {
     { label: 'Autovyn Cal', icon: 'calendar_month', link: '/admin/timesheet' },
     { label: 'Employees', icon: 'badge', link: '/admin/employees' },
     { label: 'Approvals', icon: 'approval', link: '/admin/approvals' },
-    { label: 'Screenshots', icon: 'screenshot_monitor', link: '/admin/screenshots' },
+    { label: 'Employee Monitoring', icon: 'screenshot_monitor', link: '/admin/screenshots' },
     { label: 'Projects', icon: 'workspaces', link: '/admin/projects' },
     { label: 'Credential Manager', icon: 'key', link: '/admin/credentials' },
     { label: 'Announcements', icon: 'campaign', link: '/admin/announcements' },
