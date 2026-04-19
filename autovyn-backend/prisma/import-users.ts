@@ -229,6 +229,7 @@ export interface ImportUsersFromCsvOptions {
   csvPath: string;
   defaultPassword?: string;
   prismaClient?: PrismaClient;
+  resetExisting?: boolean;
 }
 
 export interface ImportUsersFromCsvResult {
@@ -296,19 +297,22 @@ export const importUsersFromCsv = async (options: ImportUsersFromCsvOptions): Pr
     const legacyUserIdToNewId = new Map<string, string>();
     const managerLinks: Array<{ managerLegacyUserId: string; userId: string }> = [];
 
-    await prisma.refreshToken.deleteMany();
-    await prisma.arsRequest.deleteMany();
-    await prisma.leaveRequest.deleteMany();
-    await prisma.attendanceDay.deleteMany();
-    await prisma.announcement.deleteMany();
-    await prisma.holiday.deleteMany();
-    await prisma.policy.deleteMany();
-    await prisma.credential.deleteMany();
-    await prisma.projectAssignment.deleteMany();
-    await prisma.project.deleteMany();
-    await prisma.workHeartbeat.deleteMany();
-    await prisma.user.updateMany({ data: { managerId: null } });
-    await prisma.user.deleteMany();
+    if (options.resetExisting ?? true) {
+      await prisma.refreshToken.deleteMany();
+      await prisma.arsRequest.deleteMany();
+      await prisma.leaveRequest.deleteMany();
+      await prisma.attendanceDay.deleteMany();
+      await prisma.announcement.deleteMany();
+      await prisma.holiday.deleteMany();
+      await prisma.policy.deleteMany();
+      await prisma.credential.deleteMany();
+      await prisma.projectAssignment.deleteMany();
+      await prisma.project.deleteMany();
+      await prisma.screenshot.deleteMany();
+      await prisma.workHeartbeat.deleteMany();
+      await prisma.user.updateMany({ data: { managerId: null } });
+      await prisma.user.deleteMany();
+    }
 
     let created = 0;
     let skippedDuplicates = 0;
@@ -345,7 +349,8 @@ export const importUsersFromCsv = async (options: ImportUsersFromCsvOptions): Pr
 
       const fullName = getAny('FullName', 'EmployeeName', 'Name') || get('UserName') || loginId;
       const rawPassword = get('UserPassword');
-      const passwordText = (options.defaultPassword ?? rawPassword) || loginId;
+      const normalizedPassword = normalizeImportedDate(rawPassword) ?? rawPassword;
+      const passwordText = (options.defaultPassword ?? normalizedPassword) || loginId;
 
       if (options.defaultPassword) {
         overriddenPasswordCount += 1;

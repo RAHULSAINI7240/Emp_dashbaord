@@ -50,6 +50,22 @@ a {
   animation: sheetIn 0.2s ease;
 }
 
+.agent-inactive-dialog-panel .mat-mdc-dialog-surface {
+  border-radius: 28px !important;
+  padding: 1.1rem !important;
+  background:
+    linear-gradient(180deg, rgba(5, 5, 127, 0.04), rgba(36, 222, 170, 0.05)),
+    #ffffff !important;
+  box-shadow: 0 28px 80px rgba(10, 12, 66, 0.24) !important;
+}
+
+.agent-inactive-dialog-panel .mat-mdc-dialog-content,
+.agent-inactive-dialog-panel .mat-mdc-dialog-actions,
+.agent-inactive-dialog-panel .mat-mdc-dialog-title {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 .project-editor-dialog-panel .mat-mdc-dialog-surface {
   border-radius: 26px !important;
   overflow: hidden;

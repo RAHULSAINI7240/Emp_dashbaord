@@ -118,7 +118,7 @@ export const worklogRepository = {
     return prisma.user.findMany({
       where: {
         isActive: true,
-        role: Role.EMPLOYEE
+        role: { not: Role.ADMIN }
       },
       select: {
         id: true

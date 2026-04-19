@@ -1,10 +1,16 @@
 import { AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { NgFor, NgIf, DatePipe, SlicePipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { Subscription } from 'rxjs';
+import { Subscription, combineLatest } from 'rxjs';
+import { AgentLiveStatus, AgentStatusService } from '../../../core/services/agent-status.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ScreenshotService, ScreenshotEntry } from '../../../core/services/screenshot.service';
 import { User } from '../../../shared/models/user.model';
+
+interface MonitoringEmployee extends User {
+  agentActive: boolean;
+  agentLiveStatus: AgentLiveStatus;
+}
 
 @Component({
   selector: 'app-admin-screenshots',
@@ -15,8 +21,8 @@ import { User } from '../../../shared/models/user.model';
 })
 export class AdminScreenshotsComponent implements OnDestroy, AfterViewChecked {
   readonly recentWindowDays = 2;
-  employees: User[] = [];
-  selectedEmployee: User | null = null;
+  employees: MonitoringEmployee[] = [];
+  selectedEmployee: MonitoringEmployee | null = null;
   screenshots: ScreenshotEntry[] = [];
   loading = false;
   previewUrl: string | null = null;
@@ -24,27 +30,40 @@ export class AdminScreenshotsComponent implements OnDestroy, AfterViewChecked {
   @ViewChild('previewBackdrop') previewBackdrop?: ElementRef<HTMLElement>;
   private needsFocus = false;
 
+  private readonly rosterSubscription = new Subscription();
   private subscription: Subscription | null = null;
   private streamAbortController: AbortController | null = null;
   private streamReconnectHandle: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
+    private readonly agentStatusService: AgentStatusService,
     private readonly authService: AuthService,
     private readonly screenshotService: ScreenshotService,
     private readonly cdr: ChangeDetectorRef
   ) {
-    this.authService.getUsers().subscribe((users) => {
-      this.employees = users.filter((u) => !u.roles.includes('ADMIN'));
-      this.cdr.markForCheck();
-    });
+    this.rosterSubscription.add(
+      combineLatest([this.authService.getUsers(), this.agentStatusService.getTeamStatusMap()]).subscribe(([users, statusMap]) => {
+        this.employees = users
+          .filter((u) => !u.roles.includes('ADMIN'))
+          .map((user) => this.decorateEmployee(user, statusMap));
+
+        if (this.selectedEmployee) {
+          this.selectedEmployee =
+            this.employees.find((employee) => employee.id === this.selectedEmployee?.id) ?? this.selectedEmployee;
+        }
+
+        this.cdr.markForCheck();
+      })
+    );
   }
 
   ngOnDestroy(): void {
+    this.rosterSubscription.unsubscribe();
     this.subscription?.unsubscribe();
     this.disconnectStream();
   }
 
-  selectEmployee(user: User): void {
+  selectEmployee(user: MonitoringEmployee): void {
     this.selectedEmployee = user;
     this.screenshots = [];
     this.loading = true;
@@ -131,5 +150,14 @@ export class AdminScreenshotsComponent implements OnDestroy, AfterViewChecked {
 
   private sortScreenshots(items: ScreenshotEntry[]): ScreenshotEntry[] {
     return [...items].sort((a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime());
+  }
+
+  private decorateEmployee(user: User, statusMap: Map<string, AgentLiveStatus>): MonitoringEmployee {
+    const agentLiveStatus = statusMap.get(user.id) ?? 'OFFLINE';
+    return {
+      ...user,
+      agentLiveStatus,
+      agentActive: this.agentStatusService.isAgentActive(agentLiveStatus)
+    };
   }
 }

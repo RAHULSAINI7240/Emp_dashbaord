@@ -1,14 +1,15 @@
 import 'dotenv/config';
 import { importUsersFromCsv } from './import-users';
 
-const parseArgs = (): { csvPath: string; defaultPassword?: string } => {
+const parseArgs = (): { csvPath: string; defaultPassword?: string; skipReset: boolean } => {
   const args = process.argv.slice(2);
   const csvPath = args[0];
   if (!csvPath) {
-    throw new Error('Usage: tsx prisma/import-users-from-csv.ts <csv-path> [--default-password <password>]');
+    throw new Error('Usage: tsx prisma/import-users-from-csv.ts <csv-path> [--default-password <password>] [--skip-reset]');
   }
 
   let defaultPassword: string | undefined;
+  let skipReset = false;
   for (let i = 1; i < args.length; i += 1) {
     const arg = args[i];
     if (arg === '--default-password') {
@@ -21,15 +22,20 @@ const parseArgs = (): { csvPath: string; defaultPassword?: string } => {
       continue;
     }
 
+    if (arg === '--skip-reset') {
+      skipReset = true;
+      continue;
+    }
+
     throw new Error(`Unknown argument: ${arg}`);
   }
 
-  return { csvPath, defaultPassword };
+  return { csvPath, defaultPassword, skipReset };
 };
 
 const main = async (): Promise<void> => {
-  const { csvPath, defaultPassword } = parseArgs();
-  const result = await importUsersFromCsv({ csvPath, defaultPassword });
+  const { csvPath, defaultPassword, skipReset } = parseArgs();
+  const result = await importUsersFromCsv({ csvPath, defaultPassword, resetExisting: !skipReset });
 
   console.log(`Imported users: ${result.created}`);
   console.log(`Manager links mapped: ${result.managerMapped}`);

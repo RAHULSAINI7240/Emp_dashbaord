@@ -8,19 +8,28 @@
   </div>
 
   <div class="list">
-    <article *ngFor="let u of (filtered$ | async)" class="row">
-      <div>
+    <article *ngFor="let u of (filtered$ | async)" class="row" [class.agent-active]="u.agentActive" [class.agent-inactive]="!u.agentActive">
+      <div class="row-copy">
         <strong>{{ u.name }}</strong>
         <p><mat-icon>badge</mat-icon>{{ u.designation }} - <mat-icon>location_on</mat-icon>{{ u.city }}</p>
         <p>
           <mat-icon>verified_user</mat-icon>{{ u.roles.join(', ') }}
           <span *ngIf="u.email"> - {{ u.email }}</span>
         </p>
+        <p class="agent-line">
+          <mat-icon>{{ u.agentActive ? 'desktop_windows' : 'desktop_access_disabled' }}</mat-icon>
+          {{ u.agentActive ? 'Agent active' : 'Agent inactive' }}
+        </p>
       </div>
-      <a class="view-btn" [routerLink]="['/admin/employees', u.id]">
-        <mat-icon>dashboard</mat-icon>
-        Open Dashboard
-      </a>
+      <div class="row-actions">
+        <span class="agent-chip" [class.active]="u.agentActive" [class.inactive]="!u.agentActive">
+          {{ u.agentActive ? 'Active' : 'Inactive' }}
+        </span>
+        <a class="view-btn" [routerLink]="['/admin/employees', u.id]">
+          <mat-icon>dashboard</mat-icon>
+          Open Dashboard
+        </a>
+      </div>
     </article>
   </div>
 </div>

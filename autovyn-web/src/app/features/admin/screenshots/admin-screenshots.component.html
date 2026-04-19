@@ -7,15 +7,31 @@
     </div>
 
     <div class="employee-list">
-      <button type="button" *ngFor="let emp of employees" class="employee-row" (click)="selectEmployee(emp)">
+      <button
+        type="button"
+        *ngFor="let emp of employees"
+        class="employee-row"
+        [class.agent-active]="emp.agentActive"
+        [class.agent-inactive]="!emp.agentActive"
+        (click)="selectEmployee(emp)"
+      >
         <div class="employee-info">
           <strong>{{ emp.name }}</strong>
           <p><mat-icon>badge</mat-icon>{{ emp.designation }} &mdash; {{ emp.city }}</p>
+          <p class="agent-status">
+            <mat-icon>{{ emp.agentActive ? 'desktop_windows' : 'desktop_access_disabled' }}</mat-icon>
+            {{ emp.agentActive ? 'Agent active' : 'Agent inactive' }}
+          </p>
         </div>
-        <span class="photos-btn">
-          <mat-icon>photo_library</mat-icon>
-          Check Photos
-        </span>
+        <div class="employee-actions">
+          <span class="agent-chip" [class.active]="emp.agentActive" [class.inactive]="!emp.agentActive">
+            {{ emp.agentActive ? 'Active' : 'Inactive' }}
+          </span>
+          <span class="photos-btn">
+            <mat-icon>photo_library</mat-icon>
+            Check Photos
+          </span>
+        </div>
       </button>
 
       <p class="empty-state" *ngIf="!employees.length">No employees found.</p>

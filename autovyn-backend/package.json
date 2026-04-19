@@ -12,6 +12,8 @@
     "db:core-users": "tsx prisma/ensure-core-users.ts",
     "db:import:users:csv": "tsx prisma/import-users-from-csv.ts",
     "db:import:users:xlsx": "tsx prisma/import-users-from-xlsx.ts",
+    "db:reset:user-data": "tsx prisma/reset-user-data-mongo.ts",
+    "db:users:disable": "tsx prisma/disable-users.ts",
     "db:password:set": "tsx prisma/set-user-password.ts",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma db push --force-reset"
