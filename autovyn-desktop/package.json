@@ -11,6 +11,9 @@
     "check": "node scripts/check-syntax.js",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
+    "dist:mac": "electron-builder --mac dmg --x64 --arm64",
+    "dist:windows": "electron-builder --win nsis --x64",
+    "dist:linux": "electron-builder --linux deb AppImage",
     "dist:linux:appimage": "electron-builder --linux AppImage",
     "publish:installers": "node scripts/publish-installers.js",
     "dist:publish": "npm run dist && npm run publish:installers"
@@ -57,10 +60,16 @@
     },
     "mac": {
       "target": [
-        "dmg"
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ],
       "icon": "assets/icon.png",
-      "artifactName": "Autovyn-Desktop.${ext}",
+      "artifactName": "Autovyn-Desktop-${arch}.${ext}",
       "category": "public.app-category.productivity"
     },
     "linux": {

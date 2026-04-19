@@ -140,22 +140,6 @@
           <h3>Weekly Work Tracker</h3>
           <p class="vscode-note">{{ trackerConnectionLabel }}</p>
           <p class="vscode-note">{{ trackerConnectionNote }}</p>
-          <div class="agent-download-card" *ngIf="!isAdminView">
-            <p class="agent-download-eyebrow"><mat-icon>download</mat-icon>Desktop App</p>
-            <h4>Install the tracker as a desktop app</h4>
-            <p class="agent-download-note">{{ agentLoginHint }}</p>
-            <div class="agent-download-actions">
-              <button type="button" class="agent-download-button primary" (click)="downloadDesktopAgent()">
-                <mat-icon>download_for_offline</mat-icon>
-                Download App
-              </button>
-              <button type="button" class="agent-download-button secondary" (click)="copyAgentLoginId()" [disabled]="!agentLoginId">
-                <mat-icon>badge</mat-icon>
-                Copy Employee ID
-              </button>
-            </div>
-            <p class="agent-download-helper">It installs like a normal desktop app, can launch on startup, and keeps running in the tray after sign-in.</p>
-          </div>
         </div>
         <div class="vscode-status-cluster">
           <div class="vscode-status-pill" [class.active]="vscodeStatus.tone === 'active'" [class.idle]="vscodeStatus.tone === 'idle'" [class.inactive]="vscodeStatus.tone === 'inactive'">
@@ -167,6 +151,45 @@
           <div class="vscode-badge">
             <span>Productivity</span>
             <strong>{{ vscodePrimarySummary?.productivityPercent ?? vscodeSummary?.productivityPercent ?? 0 }}%</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="agent-download-card" *ngIf="!isAdminView">
+        <div class="agent-download-layout">
+          <div class="agent-download-copy">
+            <p class="agent-download-eyebrow"><mat-icon>download</mat-icon>Desktop App</p>
+            <h4>Download, install, and sign in once</h4>
+            <p class="agent-download-note">{{ agentLoginHint }}</p>
+
+            <div class="agent-download-steps">
+              <span>1. Download the installer</span>
+              <span>2. Install it normally</span>
+              <span>3. Sign in once</span>
+            </div>
+
+            <p class="agent-download-helper">
+              Mac: choose Apple Silicon for M1, M2, M3, or M4 Macs. Choose Intel for older Macs.
+            </p>
+          </div>
+
+          <div class="agent-download-side">
+            <div class="agent-download-credentials">
+              <p class="agent-download-side-label">Login</p>
+              <strong>{{ agentLoginId || 'Your employee ID' }}</strong>
+              <span>Use your current dashboard password</span>
+            </div>
+
+            <div class="agent-download-actions">
+              <button type="button" class="agent-download-button primary" (click)="downloadDesktopAgent()">
+                <mat-icon>download_for_offline</mat-icon>
+                Download Installer
+              </button>
+              <button type="button" class="agent-download-button secondary" (click)="copyAgentLoginId()" [disabled]="!agentLoginId">
+                <mat-icon>badge</mat-icon>
+                Copy Employee ID
+              </button>
+            </div>
           </div>
         </div>
       </div>

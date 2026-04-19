@@ -847,7 +847,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy, OnInit {
       window.location.href = targetUrl.toString();
     }
 
-    this.toastService.show('Open the installer, finish setup, then sign in to the desktop app.', 'info');
+    this.toastService.show('Choose the installer for your computer, finish setup, then sign in with your employee ID and current password.', 'info');
   }
 
   copyAgentLoginId(): void {

@@ -215,6 +215,14 @@ export class AuthService {
     return typeof token === 'string' && token.length > 0;
   }
 
+  getDefaultRoute(): string {
+    const roles = this.currentUserSubject.value?.roles?.length
+      ? this.currentUserSubject.value.roles
+      : this.getSession()?.roles ?? [];
+
+    return roles.includes('ADMIN') ? '/admin/dashboard' : '/employee/attendance';
+  }
+
   usersByRole(role: Role): Observable<User[]> {
     this.refreshUsers();
     return this.users$.pipe(map((users) => users.filter((u) => u.roles.includes(role))));

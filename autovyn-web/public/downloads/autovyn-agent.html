@@ -7,18 +7,18 @@
     <style>
       :root {
         color-scheme: light;
-        --bg: #f4f7fb;
-        --panel: rgba(255, 255, 255, 0.92);
-        --panel-strong: #ffffff;
-        --text: #12263f;
+        --bg: #eef4fb;
+        --panel: #ffffff;
+        --soft: #f5f8fd;
+        --line: rgba(23, 55, 106, 0.12);
+        --text: #10233f;
         --muted: #5d718a;
-        --line: #d6e0ec;
-        --primary: #1656c1;
-        --primary-strong: #0e3b8c;
-        --accent: #0f9d73;
-        --warning: #a86b17;
-        --success: #177c5d;
-        --shadow: 0 26px 64px rgba(17, 45, 84, 0.12);
+        --primary: #1c65b5;
+        --primary-strong: #11397f;
+        --success: #18755b;
+        --warning: #9f6417;
+        --danger: #b84949;
+        --shadow: 0 18px 38px rgba(16, 35, 63, 0.08);
       }
 
       * {
@@ -31,43 +31,73 @@
         font-family: "Aptos", "Trebuchet MS", "Segoe UI", sans-serif;
         color: var(--text);
         background:
-          radial-gradient(circle at top left, rgba(22, 86, 193, 0.15), transparent 28%),
-          radial-gradient(circle at bottom right, rgba(15, 157, 115, 0.12), transparent 26%),
+          radial-gradient(circle at top left, rgba(28, 101, 181, 0.14), transparent 26%),
           linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
       }
 
       a {
         color: inherit;
       }
 
-      .shell {
-        width: min(1160px, calc(100% - 2rem));
-        margin: 0 auto;
-        padding: 2rem 0 3rem;
+      code {
+        padding: 0.12rem 0.35rem;
+        border-radius: 7px;
+        background: rgba(17, 57, 127, 0.08);
+        color: var(--primary-strong);
       }
 
-      .hero,
-      .step,
+      .shell {
+        width: min(1120px, calc(100% - 2rem));
+        margin: 0 auto;
+        padding: 1.15rem 0 2.5rem;
+      }
+
+      .page-head,
+      .card,
       .platform-card,
       .footer-note {
         border: 1px solid var(--line);
+        border-radius: 20px;
         background: var(--panel);
         box-shadow: var(--shadow);
-        backdrop-filter: blur(12px);
       }
 
-      .hero {
+      .page-head {
         display: grid;
-        grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.85fr);
-        gap: 1.25rem;
-        padding: 1.4rem;
-        border-radius: 30px;
+        grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.95fr);
+        gap: 1rem;
+      }
+
+      .head-copy,
+      .side-card,
+      .card,
+      .platform-card {
+        padding: 1.1rem 1.15rem;
+      }
+
+      .brand-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .brand-mark {
+        width: clamp(150px, 18vw, 210px);
+        border-radius: 16px;
+        padding: 0.7rem 0.9rem;
+        background: #fff;
+        border: 1px solid rgba(17, 57, 127, 0.08);
       }
 
       .eyebrow,
       .mini-label {
         margin: 0;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 800;
         letter-spacing: 0.12em;
         text-transform: uppercase;
@@ -77,111 +107,90 @@
         color: var(--primary);
       }
 
-      .hero h1 {
-        margin: 0.55rem 0 0;
-        font-size: clamp(2.25rem, 4vw, 3.4rem);
-        line-height: 1.02;
+      .mini-label {
+        color: var(--success);
       }
 
-      .hero-copy > p,
-      .step p,
+      h1 {
+        margin: 0.35rem 0 0;
+        font-size: clamp(2rem, 4vw, 3rem);
+        line-height: 1.05;
+      }
+
+      h2 {
+        margin: 0.45rem 0 0;
+        font-size: 1.12rem;
+      }
+
+      .lead,
+      .card p,
+      .side-card p,
       .platform-card p,
-      .footer-note,
-      .login-panel p,
-      .recommended-card p {
+      .footer-note {
         color: var(--muted);
         line-height: 1.6;
       }
 
-      .hero-text {
-        margin: 1rem 0 0;
-        max-width: 44rem;
-        font-size: 1rem;
+      .lead {
+        margin: 0.95rem 0 0;
+        max-width: 42rem;
       }
 
-      .feature-pills {
+      .quick-steps {
+        margin-top: 0.9rem;
         display: flex;
         flex-wrap: wrap;
-        gap: 0.7rem;
-        margin-top: 1.1rem;
+        gap: 0.55rem;
       }
 
-      .feature-pills span,
-      .platform-badge,
-      .login-chip {
+      .quick-steps span,
+      .platform-badge {
         display: inline-flex;
         align-items: center;
-        min-height: 2.25rem;
-        padding: 0 0.85rem;
+        min-height: 2rem;
+        padding: 0 0.8rem;
         border-radius: 999px;
-        font-size: 0.8rem;
-        font-weight: 800;
-        letter-spacing: 0.03em;
+        font-size: 0.82rem;
+        font-weight: 700;
       }
 
-      .feature-pills span {
-        background: rgba(22, 86, 193, 0.08);
-        border: 1px solid rgba(22, 86, 193, 0.12);
+      .quick-steps span {
+        background: rgba(28, 101, 181, 0.08);
+        border: 1px solid rgba(28, 101, 181, 0.12);
         color: var(--primary-strong);
       }
 
+      .side-card {
+        border-radius: 20px;
+        background: linear-gradient(180deg, rgba(245, 248, 253, 0.9), #ffffff 100%);
+      }
+
       .login-panel {
-        margin-top: 1.25rem;
-        padding: 1rem 1.05rem;
-        border-radius: 22px;
-        background: linear-gradient(135deg, rgba(14, 59, 140, 0.98), rgba(22, 86, 193, 0.9));
-        color: #fff;
+        margin-top: 0.95rem;
+        padding: 0.9rem 0.95rem;
+        border-radius: 16px;
+        background: var(--soft);
+        border: 1px solid rgba(28, 101, 181, 0.12);
       }
 
-      .login-panel p,
-      .login-panel small {
-        color: rgba(255, 255, 255, 0.86);
-      }
-
-      .login-chip {
-        background: rgba(255, 255, 255, 0.14);
-      }
-
-      .login-credentials {
-        margin-top: 0.9rem;
+      .login-row {
         display: flex;
         flex-wrap: wrap;
         gap: 0.75rem;
         align-items: center;
+        justify-content: space-between;
       }
 
       .login-id {
-        font-size: 1.2rem;
+        margin-top: 0.22rem;
+        color: var(--primary-strong);
+        font-size: 1.1rem;
         font-weight: 800;
         letter-spacing: 0.04em;
       }
 
-      .recommended-card {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        gap: 1rem;
-        padding: 1.15rem;
-        border-radius: 24px;
-        background:
-          linear-gradient(180deg, rgba(14, 59, 140, 0.04), rgba(255, 255, 255, 0.9)),
-          var(--panel-strong);
-        border: 1px solid rgba(22, 86, 193, 0.14);
-      }
-
-      .mini-label {
-        color: var(--accent);
-      }
-
-      .recommended-card h2 {
-        margin: 0.5rem 0 0;
-        font-size: 1.7rem;
-        line-height: 1.15;
-      }
-
-      .recommended-meta {
-        display: grid;
-        gap: 0.8rem;
+      .login-hint {
+        margin-top: 0.8rem;
       }
 
       .copy-button,
@@ -189,7 +198,7 @@
       .download-link {
         appearance: none;
         border: 1px solid transparent;
-        border-radius: 16px;
+        border-radius: 14px;
         font: inherit;
         font-weight: 700;
         text-decoration: none;
@@ -197,9 +206,10 @@
       }
 
       .copy-button {
-        padding: 0.82rem 1rem;
+        padding: 0.78rem 0.95rem;
         background: #fff;
         color: var(--primary-strong);
+        border-color: rgba(17, 57, 127, 0.12);
       }
 
       .primary-download,
@@ -207,25 +217,24 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 0.45rem;
+        width: 100%;
       }
 
       .primary-download {
-        width: 100%;
-        min-height: 3.2rem;
-        padding: 0.9rem 1rem;
+        margin-top: 1rem;
+        min-height: 3rem;
+        padding: 0.88rem 1rem;
         color: #fff;
         background: linear-gradient(135deg, var(--primary-strong), var(--primary));
-        box-shadow: 0 16px 30px rgba(22, 86, 193, 0.22);
+        box-shadow: 0 12px 24px rgba(28, 101, 181, 0.18);
       }
 
       .download-link {
-        width: 100%;
-        margin-top: 1rem;
-        padding: 0.92rem 1rem;
+        margin-top: 0.9rem;
+        min-height: 2.9rem;
+        padding: 0.85rem 1rem;
         color: #fff;
         background: linear-gradient(135deg, #154ea9, #1c68d2);
-        box-shadow: 0 14px 28px rgba(28, 104, 210, 0.18);
       }
 
       .copy-button:hover,
@@ -237,14 +246,77 @@
       .primary-download[aria-disabled="true"],
       .download-link[aria-disabled="true"] {
         pointer-events: none;
-        color: #91a2b9;
+        color: #92a3b9;
         background: #edf2f8;
         box-shadow: none;
-        border-color: var(--line);
+        border-color: rgba(17, 57, 127, 0.12);
+      }
+
+      .card-grid,
+      .platforms {
+        margin-top: 1rem;
+        display: grid;
+        gap: 1rem;
+      }
+
+      .card-grid {
+        grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      }
+
+      .step-list {
+        margin-top: 0.8rem;
+        display: grid;
+        gap: 0.7rem;
+      }
+
+      .step-row {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.7rem;
+        align-items: start;
+        padding: 0.85rem 0.9rem;
+        border-radius: 16px;
+        background: var(--soft);
+        border: 1px solid rgba(17, 57, 127, 0.08);
+      }
+
+      .step-row strong {
+        width: 1.9rem;
+        height: 1.9rem;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--primary-strong), var(--primary));
+        color: #fff;
+        font-size: 0.85rem;
+      }
+
+      .step-row span {
+        color: #36506f;
+        line-height: 1.5;
+      }
+
+      .note-box {
+        margin-top: 0.85rem;
+        padding: 0.9rem 0.95rem;
+        border-radius: 16px;
+        background: rgba(255, 246, 232, 0.92);
+        border: 1px solid rgba(159, 100, 23, 0.18);
+      }
+
+      .note-box strong {
+        display: block;
+        margin-bottom: 0.2rem;
+        color: var(--warning);
+      }
+
+      .note-box p {
+        margin: 0;
       }
 
       .status {
-        font-size: 0.9rem;
+        margin-top: 0.65rem;
+        font-size: 0.92rem;
         font-weight: 700;
       }
 
@@ -256,162 +328,154 @@
         color: var(--warning);
       }
 
-      .steps,
-      .platforms {
-        display: grid;
-        gap: 1rem;
-        margin-top: 1.25rem;
+      .status.warning {
+        color: var(--danger);
       }
 
-      .steps {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      .step,
-      .platform-card {
-        border-radius: 24px;
-        padding: 1.1rem;
-      }
-
-      .step-number {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 2.2rem;
-        height: 2.2rem;
-        border-radius: 999px;
-        background: rgba(22, 86, 193, 0.1);
-        color: var(--primary);
-        font-size: 0.95rem;
-        font-weight: 800;
-      }
-
-      .step h2,
-      .platform-card h2 {
-        margin: 0.8rem 0 0.35rem;
-        font-size: 1.08rem;
+      .recommended-helper {
+        margin: 0.8rem 0 0;
+        font-size: 0.9rem;
       }
 
       .platforms {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      .platform-card {
-        position: relative;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       }
 
       .platform-card.is-recommended {
-        border-color: rgba(15, 157, 115, 0.3);
-        box-shadow: 0 28px 56px rgba(15, 157, 115, 0.12);
+        border-color: rgba(24, 117, 91, 0.24);
+        box-shadow: 0 18px 30px rgba(24, 117, 91, 0.1);
+      }
+
+      .platform-card.is-legacy {
+        background: linear-gradient(180deg, rgba(255, 248, 236, 0.92), #ffffff 100%);
       }
 
       .platform-badge {
-        background: rgba(22, 86, 193, 0.08);
+        background: rgba(28, 101, 181, 0.08);
         color: var(--primary);
       }
 
       .platform-note {
-        min-height: 3.3rem;
+        margin: 0.5rem 0 0;
+      }
+
+      .platform-hint {
+        margin-top: 0.7rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.55;
       }
 
       .footer-note {
-        margin-top: 1.25rem;
-        padding: 1rem 1.05rem;
-        border-radius: 22px;
+        margin-top: 1rem;
+        padding: 0.95rem 1rem;
       }
 
-      code {
-        padding: 0.12rem 0.35rem;
-        border-radius: 8px;
-        background: rgba(14, 59, 140, 0.07);
-        color: var(--primary-strong);
-      }
-
-      @media (max-width: 960px) {
-        .hero {
+      @media (max-width: 940px) {
+        .page-head,
+        .card-grid {
           grid-template-columns: 1fr;
         }
       }
 
-      @media (max-width: 860px) {
-        .steps,
-        .platforms {
-          grid-template-columns: 1fr;
+      @media (max-width: 640px) {
+        .shell {
+          width: min(100% - 1rem, 1120px);
+          padding-top: 0.8rem;
+        }
+
+        .brand-row {
+          flex-direction: column;
+          align-items: flex-start;
         }
       }
     </style>
   </head>
   <body>
     <main class="shell">
-      <section class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">Autovyn Desktop App</p>
-          <h1>Install Autovyn on your desktop like a normal app.</h1>
-          <p class="hero-text">
-            Download the installer for your computer, finish setup once, then sign in with your employee credentials.
-            After that, Autovyn Desktop can launch on startup, stay in the tray or menu bar, and keep syncing your
-            work tracking in the background.
-          </p>
-
-          <div class="feature-pills">
-            <span>Installable desktop app</span>
-            <span>Launches on startup</span>
-            <span>Runs in background tray</span>
+      <section class="page-head">
+        <div class="head-copy">
+          <div class="brand-row">
+            <div class="brand-mark">
+              <img src="/autovyn-logo.png" alt="Autovyn logo" />
+            </div>
+            <div>
+              <p class="eyebrow">Autovyn Desktop</p>
+              <h1>Simple desktop app download</h1>
+            </div>
           </div>
 
+          <p class="lead">
+            Choose the installer for your computer, install it like a normal desktop app, then sign in with the same
+            employee ID and password you already use in Autovyn.
+          </p>
+
+          <div class="quick-steps">
+            <span>Download</span>
+            <span>Install</span>
+            <span>Sign in</span>
+          </div>
+        </div>
+
+        <aside class="side-card">
+          <p class="mini-label">Sign in</p>
+          <h2>Use your normal employee login</h2>
+          <p>After installation, open the app and use the same employee ID and current password from the dashboard.</p>
+
           <section class="login-panel" id="loginPanel" hidden>
-            <span class="login-chip">Login hint</span>
-            <div class="login-credentials">
+            <div class="login-row">
               <div>
                 <small>Employee ID</small>
                 <div class="login-id" id="employeeIdValue">-</div>
               </div>
               <button class="copy-button" id="copyEmployeeIdButton" type="button">Copy Employee ID</button>
             </div>
-            <p id="employeeNameLine" style="margin: 0.75rem 0 0;"></p>
-            <p style="margin: 0.35rem 0 0;">Use the same password you use in the employee dashboard.</p>
+            <p id="employeeNameLine" class="login-hint"></p>
           </section>
-        </div>
 
-        <aside class="recommended-card">
-          <div class="recommended-meta">
-            <div>
-              <p class="mini-label">Recommended Installer</p>
-              <h2 id="recommendedTitle">Checking your operating system...</h2>
-            </div>
-            <p id="recommendedText">
-              Choose the installer that matches your desktop. Once installed, you can open the app from the desktop,
-              Start menu, Applications folder, or launcher like any normal desktop app.
-            </p>
-            <div class="status waiting" id="recommendedStatus">Checking if the recommended installer is published...</div>
-          </div>
-
-          <a class="primary-download" id="recommendedLink" aria-disabled="true" href="#">Preparing installer...</a>
-          <p style="margin: 0;">
-            If this device is shared or you want a different package, you can still use the platform cards below.
-          </p>
+          <p class="login-hint">No new account is needed. Install first, then sign in with your current Autovyn login.</p>
         </aside>
       </section>
 
-      <section class="steps">
-        <article class="step">
-          <span class="step-number">1</span>
-          <h2>Download the installer</h2>
-          <p>Pick the Windows, macOS, or Linux package that matches the computer where the tracker should be installed.</p>
+      <section class="card-grid">
+        <article class="card">
+          <p class="mini-label">Install steps</p>
+          <h2>Install in three steps</h2>
+
+          <div class="step-list">
+            <div class="step-row">
+              <strong>1</strong>
+              <span>Download the installer that matches the employee computer.</span>
+            </div>
+            <div class="step-row">
+              <strong>2</strong>
+              <span>Open the downloaded file and finish setup like a normal desktop app.</span>
+            </div>
+            <div class="step-row">
+              <strong>3</strong>
+              <span>Open the app, sign in once, and leave auto-start enabled if you want background tracking.</span>
+            </div>
+          </div>
+
+          <div class="note-box">
+            <strong>Mac note</strong>
+            <p>
+              If macOS says <code>This application is not supported on this Mac</code>, the wrong Mac build was
+              downloaded. Use <strong>Apple Silicon</strong> for M1, M2, M3, or M4 Macs and <strong>Intel</strong> for
+              older Macs.
+            </p>
+          </div>
         </article>
-        <article class="step">
-          <span class="step-number">2</span>
-          <h2>Install it like a desktop app</h2>
-          <p>
-            Open the downloaded file, finish the setup wizard, and let your operating system complete any permission
-            prompt. On Linux, prefer the <code>.deb</code> package when available. If you use the <code>.AppImage</code>,
-            you may need to allow it to run as a program first.
+
+        <article class="card">
+          <p class="mini-label">Recommended installer</p>
+          <h2 id="recommendedTitle">Checking your operating system...</h2>
+          <p id="recommendedText">We are checking which installer should be shown first for this device.</p>
+          <div class="status waiting" id="recommendedStatus">Checking published installers...</div>
+          <a class="primary-download" id="recommendedLink" aria-disabled="true" href="#">Preparing installer...</a>
+          <p class="recommended-helper" id="recommendedHelper">
+            If you need a different package, use the installer cards below.
           </p>
-        </article>
-        <article class="step">
-          <span class="step-number">3</span>
-          <h2>Sign in once and let it start automatically</h2>
-          <p>After your first sign-in, the app can launch when the system starts and continue working quietly in the tray.</p>
         </article>
       </section>
 
@@ -420,11 +484,11 @@
           class="platform-card"
           data-release-card
           data-platform="windows"
-          data-urls="github://Autovyn-Desktop-Setup.exe"
+          data-urls="github://Autovyn-Desktop-Setup.exe|/downloads/windows/Autovyn-Desktop-Setup.exe"
         >
           <span class="platform-badge">Windows</span>
           <h2>Installer (.exe)</h2>
-          <p class="platform-note">Best for office desktops and laptops. Installs like a standard Windows app with Start menu access.</p>
+          <p class="platform-note">Best for standard office desktops and laptops.</p>
           <div class="status waiting" data-status>Checking if this installer is published...</div>
           <a class="download-link" data-link aria-disabled="true" href="#">Installer not published yet</a>
         </article>
@@ -432,12 +496,13 @@
         <article
           class="platform-card"
           data-release-card
-          data-platform="macos"
-          data-urls="github://Autovyn-Desktop.dmg"
+          data-platform="macos-apple-silicon"
+          data-urls="github://Autovyn-Desktop-arm64.dmg|/downloads/macos/Autovyn-Desktop-arm64.dmg"
         >
           <span class="platform-badge">macOS</span>
-          <h2>Disk image (.dmg)</h2>
-          <p class="platform-note">For Mac devices where the tracker should feel like a normal installed app in the dock and menu bar.</p>
+          <h2>Apple Silicon (.dmg)</h2>
+          <p class="platform-note">Use this on M1, M2, M3, or M4 Macs.</p>
+          <p class="platform-hint">Best option for modern Mac devices with Apple chips.</p>
           <div class="status waiting" data-status>Checking if this installer is published...</div>
           <a class="download-link" data-link aria-disabled="true" href="#">Installer not published yet</a>
         </article>
@@ -445,18 +510,55 @@
         <article
           class="platform-card"
           data-release-card
-          data-platform="linux"
-          data-urls="github://Autovyn-Desktop.deb|github://Autovyn-Desktop.AppImage"
+          data-platform="macos-intel"
+          data-urls="github://Autovyn-Desktop-x64.dmg|/downloads/macos/Autovyn-Desktop-x64.dmg"
+        >
+          <span class="platform-badge">macOS</span>
+          <h2>Intel (.dmg)</h2>
+          <p class="platform-note">Use this on older Intel Mac devices.</p>
+          <p class="platform-hint">Choose this if the Mac shows Intel in About This Mac.</p>
+          <div class="status waiting" data-status>Checking if this installer is published...</div>
+          <a class="download-link" data-link aria-disabled="true" href="#">Installer not published yet</a>
+        </article>
+
+        <article
+          class="platform-card is-legacy"
+          data-release-card
+          data-platform="macos-legacy"
+          data-urls="github://Autovyn-Desktop.dmg|/downloads/macos/Autovyn-Desktop.dmg"
+        >
+          <span class="platform-badge">macOS fallback</span>
+          <h2>Legacy single DMG</h2>
+          <p class="platform-note">Use this only if chip-specific Mac installers are not published yet.</p>
+          <p class="platform-hint">If the app is not supported on that Mac, stop and use the correct Mac build.</p>
+          <div class="status waiting" data-status>Checking if this installer is published...</div>
+          <a class="download-link" data-link aria-disabled="true" href="#">Installer not published yet</a>
+        </article>
+
+        <article
+          class="platform-card"
+          data-release-card
+          data-platform="linux-deb"
+          data-urls="github://Autovyn-Desktop.deb|/downloads/linux/Autovyn-Desktop.deb"
         >
           <span class="platform-badge">Linux</span>
-          <h2>Package (.deb) or portable app (.AppImage)</h2>
-          <p class="platform-note">
-            Ubuntu and Debian users should prefer the <code>.deb</code> installer. If you use the
-            <code>.AppImage</code>, open a terminal and run these commands first:<br>
-            <code>sudo apt install libfuse2</code> (one-time setup)<br>
-            <code>chmod +x Autovyn-Desktop.AppImage</code><br>
-            <code>./Autovyn-Desktop.AppImage</code><br>
-            Without these steps Linux will block the file from running.
+          <h2>Package (.deb)</h2>
+          <p class="platform-note">Preferred for Ubuntu and Debian based systems.</p>
+          <div class="status waiting" data-status>Checking if this installer is published...</div>
+          <a class="download-link" data-link aria-disabled="true" href="#">Installer not published yet</a>
+        </article>
+
+        <article
+          class="platform-card"
+          data-release-card
+          data-platform="linux-appimage"
+          data-urls="github://Autovyn-Desktop.AppImage|/downloads/linux/Autovyn-Desktop.AppImage"
+        >
+          <span class="platform-badge">Linux</span>
+          <h2>Portable app (.AppImage)</h2>
+          <p class="platform-note">Use this if you want a portable Linux app.</p>
+          <p class="platform-hint">
+            If Linux blocks it, run <code>chmod +x Autovyn-Desktop.AppImage</code> and then open it again.
           </p>
           <div class="status waiting" data-status>Checking if this installer is published...</div>
           <a class="download-link" data-link aria-disabled="true" href="#">Installer not published yet</a>
@@ -464,19 +566,14 @@
       </section>
 
       <section class="footer-note">
-        <strong>After download:</strong>
-        On <strong>Windows</strong>, double-click the <code>.exe</code> file to install.
-        On <strong>macOS</strong>, open the <code>.dmg</code> and drag the app to Applications.
-        On <strong>Linux</strong>, install <code>.deb</code> with <code>sudo dpkg -i Autovyn-Desktop.deb</code> or
-        make the AppImage executable: first run <code>sudo apt install libfuse2</code> (one-time),
-        then <code>chmod +x Autovyn-Desktop.AppImage</code> and <code>./Autovyn-Desktop.AppImage</code>.
-        After first sign-in, the app runs silently in the system tray and launches automatically on startup.
+        <strong>After installation:</strong>
+        Open the app from your normal desktop app list, sign in with your employee credentials, and then let it run in
+        the background if your team uses desktop tracking.
       </section>
     </main>
 
     <script>
       (function () {
-        /* ── GitHub Release config ── */
         var GITHUB_OWNER = 'RAHULSAINI7240';
         var GITHUB_REPO = 'Emp_dashbaord';
         var GITHUB_API = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/releases/latest';
@@ -485,10 +582,10 @@
         var employeeId = (params.get('employeeId') || '').trim();
         var employeeName = (params.get('employeeName') || '').trim();
 
-        const loginPanel = document.getElementById('loginPanel');
-        const employeeIdValue = document.getElementById('employeeIdValue');
-        const employeeNameLine = document.getElementById('employeeNameLine');
-        const copyEmployeeIdButton = document.getElementById('copyEmployeeIdButton');
+        var loginPanel = document.getElementById('loginPanel');
+        var employeeIdValue = document.getElementById('employeeIdValue');
+        var employeeNameLine = document.getElementById('employeeNameLine');
+        var copyEmployeeIdButton = document.getElementById('copyEmployeeIdButton');
 
         if (employeeId && loginPanel && employeeIdValue) {
           loginPanel.hidden = false;
@@ -496,8 +593,8 @@
 
           if (employeeNameLine) {
             employeeNameLine.textContent = employeeName
-              ? 'Signed in as ' + employeeName + '.'
-              : 'Use this ID in the desktop app login screen.';
+              ? 'Signed in as ' + employeeName + '. Use this employee ID in the desktop app.'
+              : 'Use this employee ID in the desktop app sign-in screen.';
           }
 
           if (copyEmployeeIdButton) {
@@ -512,19 +609,14 @@
           }
         }
 
-        const recommendedTitle = document.getElementById('recommendedTitle');
-        const recommendedText = document.getElementById('recommendedText');
-        const recommendedStatus = document.getElementById('recommendedStatus');
-        const recommendedLink = document.getElementById('recommendedLink');
+        var recommendedTitle = document.getElementById('recommendedTitle');
+        var recommendedText = document.getElementById('recommendedText');
+        var recommendedStatus = document.getElementById('recommendedStatus');
+        var recommendedLink = document.getElementById('recommendedLink');
+        var recommendedHelper = document.getElementById('recommendedHelper');
 
-        const platformLabels = {
-          windows: 'Windows',
-          macos: 'macOS',
-          linux: 'Linux'
-        };
-
-        const releaseCards = Array.from(document.querySelectorAll('[data-release-card]'));
-        const releaseState = {};
+        var releaseCards = Array.from(document.querySelectorAll('[data-release-card]'));
+        var releaseState = {};
 
         function getLowerUrl(url) {
           return String(url || '').trim().toLowerCase();
@@ -534,38 +626,64 @@
           return getLowerUrl(url).endsWith('.appimage');
         }
 
-        function isLinuxDeb(url) {
-          return getLowerUrl(url).endsWith('.deb');
+        function getRelease(platform) {
+          return releaseState[platform] || { url: null };
+        }
+
+        function getDownloadLabel(platform) {
+          if (platform === 'windows') {
+            return 'Download Windows Installer';
+          }
+
+          if (platform === 'macos-apple-silicon') {
+            return 'Download Apple Silicon DMG';
+          }
+
+          if (platform === 'macos-intel') {
+            return 'Download Intel DMG';
+          }
+
+          if (platform === 'macos-legacy') {
+            return 'Download Legacy macOS DMG';
+          }
+
+          if (platform === 'linux-deb') {
+            return 'Download Linux .deb';
+          }
+
+          if (platform === 'linux-appimage') {
+            return 'Download Linux AppImage';
+          }
+
+          return 'Download Now';
         }
 
         function buildStatusMessage(platform, url) {
-          if (platform === 'linux' && isLinuxDeb(url)) {
-            return 'Linux package is live and ready to install.';
+          if (platform === 'windows') {
+            return { text: 'Windows installer is live and ready.', tone: 'ready' };
           }
 
-          if (platform === 'linux' && isLinuxAppImage(url)) {
-            return 'AppImage is live. If it does not open, allow executing the file as a program first.';
+          if (platform === 'macos-apple-silicon') {
+            return { text: 'Apple Silicon macOS installer is live and ready.', tone: 'ready' };
           }
 
-          return 'Installer is live and ready to download.';
-        }
-
-        function buildRecommendedText(platform, detectedPlatform, url) {
-          if (platform === 'linux' && isLinuxDeb(url)) {
-            return detectedPlatform
-              ? 'We detected Linux on this device. Download the .deb package, install it once, and then sign in to let the app keep running in the background.'
-              : 'Choose the installer that matches your desktop. On Linux, prefer the .deb package when it is available.';
+          if (platform === 'macos-intel') {
+            return { text: 'Intel macOS installer is live and ready.', tone: 'ready' };
           }
 
-          if (platform === 'linux' && isLinuxAppImage(url)) {
-            return detectedPlatform
-              ? 'We detected Linux on this device. Download the AppImage, then if Linux blocks it, allow executing the file and open it again before signing in.'
-              : 'Choose the installer that matches your desktop. If you use the Linux AppImage, you may need to allow it to run as a program first.';
+          if (platform === 'macos-legacy') {
+            return { text: 'Legacy macOS DMG is live. Verify the Mac chip before using it.', tone: 'warning' };
           }
 
-          return detectedPlatform
-            ? 'We detected ' + (platformLabels[platform] || 'Desktop') + ' on this device. Download the installer below, install it once, and then sign in to let the app keep running in the background.'
-            : 'Choose the installer that matches your desktop. After installation, open the app once and sign in with your employee credentials.';
+          if (platform === 'linux-deb') {
+            return { text: 'Linux .deb package is live and ready.', tone: 'ready' };
+          }
+
+          if (platform === 'linux-appimage' || isLinuxAppImage(url)) {
+            return { text: 'Linux AppImage is live. Make the file executable if needed.', tone: 'ready' };
+          }
+
+          return { text: 'Installer is live and ready.', tone: 'ready' };
         }
 
         function setLinkState(link, url, enabledLabel, disabledLabel) {
@@ -588,7 +706,7 @@
         }
 
         function detectPlatform() {
-          const platformValue = String(
+          var platformValue = String(
             (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent || ''
           ).toLowerCase();
 
@@ -607,80 +725,302 @@
           return null;
         }
 
-        function configureRecommendedPanel() {
-          const detectedPlatform = detectPlatform();
-          const chosenPlatform = detectedPlatform && releaseState[detectedPlatform] ? detectedPlatform : 'windows';
-          const state = releaseState[chosenPlatform];
-          const readablePlatform = platformLabels[chosenPlatform] || 'Desktop';
+        function detectMacChip() {
+          var architecture = String((navigator.userAgentData && navigator.userAgentData.architecture) || '').toLowerCase();
 
+          if (architecture.indexOf('arm') !== -1 || architecture.indexOf('aarch') !== -1) {
+            return 'apple-silicon';
+          }
+
+          if (architecture.indexOf('x64') !== -1 || architecture.indexOf('x86') !== -1 || architecture.indexOf('intel') !== -1) {
+            return 'intel';
+          }
+
+          return null;
+        }
+
+        function highlightRecommendedCards(platforms) {
           releaseCards.forEach(function (card) {
-            card.classList.toggle('is-recommended', card.getAttribute('data-platform') === chosenPlatform);
+            var platform = card.getAttribute('data-platform');
+            card.classList.toggle('is-recommended', platforms.indexOf(platform) !== -1);
           });
+        }
 
-          if (!recommendedTitle || !recommendedText || !recommendedStatus || !recommendedLink || !state) {
+        function applyRecommendedState(options) {
+          if (!recommendedTitle || !recommendedText || !recommendedStatus || !recommendedLink || !recommendedHelper) {
             return;
           }
 
-          recommendedTitle.textContent = readablePlatform + ' desktop app';
-          recommendedText.textContent = buildRecommendedText(chosenPlatform, detectedPlatform, state.url);
+          recommendedTitle.textContent = options.title;
+          recommendedText.textContent = options.text;
+          recommendedStatus.textContent = options.statusText;
+          recommendedStatus.className = 'status ' + options.statusTone;
+          recommendedHelper.textContent = options.helper;
+          setLinkState(recommendedLink, options.url, options.enabledLabel, options.disabledLabel);
+          highlightRecommendedCards(options.highlightPlatforms || []);
+        }
 
-          if (state.url) {
-            recommendedStatus.textContent =
-              chosenPlatform === 'linux' ? buildStatusMessage(chosenPlatform, state.url) : readablePlatform + ' installer is live and ready to install.';
-            recommendedStatus.className = 'status ready';
-            setLinkState(recommendedLink, state.url, 'Download ' + readablePlatform + ' Installer', 'Preparing installer...');
-            return;
+        function buildMacRecommendation() {
+          var chip = detectMacChip();
+          var appleSilicon = getRelease('macos-apple-silicon');
+          var intel = getRelease('macos-intel');
+          var legacy = getRelease('macos-legacy');
+
+          if (chip === 'apple-silicon' && appleSilicon.url) {
+            return {
+              title: 'macOS Apple Silicon installer',
+              text: 'This Mac looks like Apple Silicon. Download this DMG, install it, and then sign in.',
+              statusText: 'Apple Silicon installer is ready for this device.',
+              statusTone: 'ready',
+              url: appleSilicon.url,
+              enabledLabel: getDownloadLabel('macos-apple-silicon'),
+              disabledLabel: 'Preparing installer...',
+              helper: 'Use this on M1, M2, M3, or M4 Macs.',
+              highlightPlatforms: ['macos-apple-silicon']
+            };
           }
 
-          recommendedStatus.textContent = readablePlatform + ' installer is not published at this path yet.';
-          recommendedStatus.className = 'status waiting';
-          setLinkState(recommendedLink, null, 'Download ' + readablePlatform + ' Installer', 'Installer not published yet');
+          if (chip === 'intel' && intel.url) {
+            return {
+              title: 'macOS Intel installer',
+              text: 'This Mac looks like Intel. Download this DMG, install it, and then sign in.',
+              statusText: 'Intel macOS installer is ready for this device.',
+              statusTone: 'ready',
+              url: intel.url,
+              enabledLabel: getDownloadLabel('macos-intel'),
+              disabledLabel: 'Preparing installer...',
+              helper: 'Use this on older Intel Macs.',
+              highlightPlatforms: ['macos-intel']
+            };
+          }
+
+          if (appleSilicon.url && intel.url) {
+            return {
+              title: 'Choose your Mac installer',
+              text: 'We detected macOS, but this browser cannot confirm whether the Mac chip is Apple or Intel.',
+              statusText: 'Choose Apple Silicon or Intel below before downloading.',
+              statusTone: 'warning',
+              url: null,
+              enabledLabel: 'Choose Installer Below',
+              disabledLabel: 'Choose Installer Below',
+              helper: 'Open Apple menu > About This Mac if you need to confirm the chip.',
+              highlightPlatforms: ['macos-apple-silicon', 'macos-intel']
+            };
+          }
+
+          if (appleSilicon.url) {
+            return {
+              title: 'macOS Apple Silicon installer',
+              text: 'A Mac installer for Apple Silicon is available for this release.',
+              statusText: 'Apple Silicon installer is published.',
+              statusTone: 'ready',
+              url: appleSilicon.url,
+              enabledLabel: getDownloadLabel('macos-apple-silicon'),
+              disabledLabel: 'Preparing installer...',
+              helper: 'Do not use this on Intel Macs.',
+              highlightPlatforms: ['macos-apple-silicon']
+            };
+          }
+
+          if (intel.url) {
+            return {
+              title: 'macOS Intel installer',
+              text: 'An Intel Mac installer is available for this release.',
+              statusText: 'Intel macOS installer is published.',
+              statusTone: 'ready',
+              url: intel.url,
+              enabledLabel: getDownloadLabel('macos-intel'),
+              disabledLabel: 'Preparing installer...',
+              helper: 'Do not use this on M1, M2, M3, or M4 Macs.',
+              highlightPlatforms: ['macos-intel']
+            };
+          }
+
+          if (legacy.url) {
+            return {
+              title: 'Legacy macOS installer',
+              text: 'A single Mac DMG is published, but it may not match every Mac chip.',
+              statusText: 'Legacy macOS DMG is live. Verify the Mac chip first.',
+              statusTone: 'warning',
+              url: legacy.url,
+              enabledLabel: getDownloadLabel('macos-legacy'),
+              disabledLabel: 'Preparing installer...',
+              helper: 'Safer option: publish separate Apple Silicon and Intel Mac installers.',
+              highlightPlatforms: ['macos-legacy']
+            };
+          }
+
+          return {
+            title: 'macOS installer',
+            text: 'A Mac installer is not published yet for this release.',
+            statusText: 'macOS installer is not published yet.',
+            statusTone: 'waiting',
+            url: null,
+            enabledLabel: 'Download macOS Installer',
+            disabledLabel: 'Installer not published yet',
+            helper: 'Use the installer cards below when the Mac release is available.',
+            highlightPlatforms: []
+          };
+        }
+
+        function buildRecommendedState() {
+          var detectedPlatform = detectPlatform();
+          var windows = getRelease('windows');
+          var linuxDeb = getRelease('linux-deb');
+          var linuxAppImage = getRelease('linux-appimage');
+
+          if (detectedPlatform === 'macos') {
+            return buildMacRecommendation();
+          }
+
+          if (detectedPlatform === 'linux') {
+            if (linuxDeb.url) {
+              return {
+                title: 'Linux .deb package',
+                text: 'Linux was detected. The .deb package is usually the easiest option.',
+                statusText: 'Linux .deb package is ready to install.',
+                statusTone: 'ready',
+                url: linuxDeb.url,
+                enabledLabel: getDownloadLabel('linux-deb'),
+                disabledLabel: 'Preparing installer...',
+                helper: 'If you need a portable package instead, use the AppImage card below.',
+                highlightPlatforms: ['linux-deb']
+              };
+            }
+
+            if (linuxAppImage.url) {
+              return {
+                title: 'Linux AppImage',
+                text: 'Linux was detected. Download the AppImage and allow it to run as a program if needed.',
+                statusText: 'Linux AppImage is ready to install.',
+                statusTone: 'ready',
+                url: linuxAppImage.url,
+                enabledLabel: getDownloadLabel('linux-appimage'),
+                disabledLabel: 'Preparing installer...',
+                helper: 'Run chmod +x on the file first if Linux blocks it.',
+                highlightPlatforms: ['linux-appimage']
+              };
+            }
+          }
+
+          if (detectedPlatform === 'windows' && windows.url) {
+            return {
+              title: 'Windows installer',
+              text: 'Windows was detected. Download the installer, finish setup, and then sign in.',
+              statusText: 'Windows installer is ready to install.',
+              statusTone: 'ready',
+              url: windows.url,
+              enabledLabel: getDownloadLabel('windows'),
+              disabledLabel: 'Preparing installer...',
+              helper: 'The app installs like a normal Windows desktop app.',
+              highlightPlatforms: ['windows']
+            };
+          }
+
+          if (windows.url) {
+            return {
+              title: 'Windows installer',
+              text: 'Choose the installer that matches your desktop. Windows is shown first as the default.',
+              statusText: 'Windows installer is ready to install.',
+              statusTone: 'ready',
+              url: windows.url,
+              enabledLabel: getDownloadLabel('windows'),
+              disabledLabel: 'Preparing installer...',
+              helper: 'If you need macOS or Linux instead, use the cards below.',
+              highlightPlatforms: ['windows']
+            };
+          }
+
+          if (linuxDeb.url) {
+            return {
+              title: 'Linux .deb package',
+              text: 'A Linux .deb package is available for this release.',
+              statusText: 'Linux .deb package is ready to install.',
+              statusTone: 'ready',
+              url: linuxDeb.url,
+              enabledLabel: getDownloadLabel('linux-deb'),
+              disabledLabel: 'Preparing installer...',
+              helper: 'Ubuntu and Debian systems should prefer this package.',
+              highlightPlatforms: ['linux-deb']
+            };
+          }
+
+          if (linuxAppImage.url) {
+            return {
+              title: 'Linux AppImage',
+              text: 'A portable Linux AppImage is available for this release.',
+              statusText: 'Linux AppImage is ready to install.',
+              statusTone: 'ready',
+              url: linuxAppImage.url,
+              enabledLabel: getDownloadLabel('linux-appimage'),
+              disabledLabel: 'Preparing installer...',
+              helper: 'If the file does not open, make it executable first.',
+              highlightPlatforms: ['linux-appimage']
+            };
+          }
+
+          return {
+            title: 'Installer not published yet',
+            text: 'No matching installer asset was found in the latest release.',
+            statusText: 'Published installers were not found.',
+            statusTone: 'waiting',
+            url: null,
+            enabledLabel: 'Download Installer',
+            disabledLabel: 'Installer not published yet',
+            helper: 'Publish the desktop release assets first, then reload this page.',
+            highlightPlatforms: []
+          };
         }
 
         async function resolvePublishedUrl(candidateUrls) {
-          for (const candidateUrl of candidateUrls) {
-            // github:// pseudo-protocol — resolved from latest release assets
-            if (candidateUrl.startsWith('github://')) {
-              const assetName = candidateUrl.replace('github://', '');
-              var match = (window.__ghReleaseAssets || []).find(function (a) {
-                return a.name.toLowerCase() === assetName.toLowerCase();
+          for (var index = 0; index < candidateUrls.length; index += 1) {
+            var candidateUrl = candidateUrls[index];
+
+            if (candidateUrl.indexOf('github://') === 0) {
+              var assetName = candidateUrl.replace('github://', '');
+              var match = (window.__ghReleaseAssets || []).find(function (asset) {
+                return asset.name.toLowerCase() === assetName.toLowerCase();
               });
-              if (match) return match.browser_download_url;
+
+              if (match) {
+                return match.browser_download_url;
+              }
+
               continue;
             }
 
-            // Legacy: local path check via HEAD
             try {
-              const response = await fetch(candidateUrl, { method: 'HEAD', cache: 'no-store' });
+              var response = await fetch(candidateUrl, { method: 'HEAD', cache: 'no-store' });
               if (response.ok) {
                 return candidateUrl;
               }
             } catch (error) {
-              // Ignore and continue to the next candidate.
+              // Ignore and continue to the next candidate URL.
             }
           }
 
           return null;
         }
 
-        /* Fetch latest GitHub release assets, then resolve all cards */
         async function init() {
           try {
-            var res = await fetch(GITHUB_API, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
-            if (res.ok) {
-              var release = await res.json();
+            var releaseResponse = await fetch(GITHUB_API, { headers: { Accept: 'application/vnd.github.v3+json' } });
+            if (releaseResponse.ok) {
+              var release = await releaseResponse.json();
               window.__ghReleaseAssets = release.assets || [];
+            } else {
+              window.__ghReleaseAssets = [];
             }
-          } catch (e) {
+          } catch (error) {
             window.__ghReleaseAssets = [];
           }
 
           await Promise.all(
             releaseCards.map(async function (card) {
-              const platform = card.getAttribute('data-platform');
-              const status = card.querySelector('[data-status]');
-              const link = card.querySelector('[data-link]');
-              const urls = String(card.getAttribute('data-urls') || '')
+              var platform = card.getAttribute('data-platform');
+              var status = card.querySelector('[data-status]');
+              var link = card.querySelector('[data-link]');
+              var urls = String(card.getAttribute('data-urls') || '')
                 .split('|')
                 .map(function (value) {
                   return value.trim();
@@ -691,23 +1031,24 @@
                 return;
               }
 
-              const publishedUrl = await resolvePublishedUrl(urls);
+              var publishedUrl = await resolvePublishedUrl(urls);
               releaseState[platform] = { url: publishedUrl };
 
               if (publishedUrl) {
-                status.textContent = buildStatusMessage(platform, publishedUrl);
-                status.className = 'status ready';
-                setLinkState(link, publishedUrl, 'Download Now', 'Installer not published yet');
+                var state = buildStatusMessage(platform, publishedUrl);
+                status.textContent = state.text;
+                status.className = 'status ' + state.tone;
+                setLinkState(link, publishedUrl, getDownloadLabel(platform), 'Installer not published yet');
                 return;
               }
 
               status.textContent = 'Installer is not published at this path yet.';
               status.className = 'status waiting';
-              setLinkState(link, null, 'Download Now', 'Installer not published yet');
+              setLinkState(link, null, getDownloadLabel(platform), 'Installer not published yet');
             })
           );
 
-          configureRecommendedPanel();
+          applyRecommendedState(buildRecommendedState());
         }
 
         init();

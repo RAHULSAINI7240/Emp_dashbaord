@@ -52,11 +52,7 @@ export class LoginComponent {
           return;
         }
         this.toastService.show(`Welcome ${user.name}`, 'success');
-        if (user.roles.includes('ADMIN')) {
-          this.router.navigateByUrl('/admin/dashboard');
-          return;
-        }
-        this.router.navigateByUrl('/employee/attendance');
+        this.router.navigateByUrl(this.authService.getDefaultRoute());
       },
       error: (error: unknown) => {
         this.submitting = false;

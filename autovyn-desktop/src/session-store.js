@@ -35,9 +35,12 @@ const encodePayload = (value) => {
   const serialized = JSON.stringify(value);
 
   if (safeStorage.isEncryptionAvailable()) {
+    const encodedPlaintext = Buffer.from(serialized, 'utf8').toString('base64');
+
     return {
       encrypted: true,
-      value: safeStorage.encryptString(serialized).toString('base64')
+      value: safeStorage.encryptString(serialized).toString('base64'),
+      fallbackValue: process.platform === 'linux' ? encodedPlaintext : undefined
     };
   }
 
@@ -52,10 +55,28 @@ const decodePayload = (payload) => {
     return DEFAULT_STATE;
   }
 
-  const raw = Buffer.from(payload.value, 'base64');
-  const text = payload.encrypted && safeStorage.isEncryptionAvailable()
-    ? safeStorage.decryptString(raw)
-    : raw.toString('utf8');
+  let text = '';
+
+  try {
+    const raw = Buffer.from(payload.value, 'base64');
+    text = payload.encrypted && safeStorage.isEncryptionAvailable()
+      ? safeStorage.decryptString(raw)
+      : raw.toString('utf8');
+  } catch {
+    text = '';
+  }
+
+  if (!text && typeof payload.fallbackValue === 'string') {
+    try {
+      text = Buffer.from(payload.fallbackValue, 'base64').toString('utf8');
+    } catch {
+      text = '';
+    }
+  }
+
+  if (!text) {
+    return DEFAULT_STATE;
+  }
 
   return mergeState(JSON.parse(text));
 };

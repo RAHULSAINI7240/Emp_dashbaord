@@ -38,7 +38,25 @@ if [[ "$SKIP_BUILD" == false ]]; then
   echo ""
   echo "▸ Building desktop agent..."
   cd "$PROJECT_DIR"
-  npx electron-builder --linux deb AppImage
+  case "$(uname -s)" in
+    Darwin)
+      echo "  macOS detected - building Apple Silicon and Intel DMGs"
+      npx electron-builder --mac dmg --x64 --arm64
+      ;;
+    Linux)
+      echo "  Linux detected - building .deb and AppImage packages"
+      npx electron-builder --linux deb AppImage
+      ;;
+    MINGW*|MSYS*|CYGWIN*)
+      echo "  Windows shell detected - building NSIS installer"
+      npx electron-builder --win nsis --x64
+      ;;
+    *)
+      echo "✘ Unsupported build host: $(uname -s)"
+      echo "  Build the desktop app on macOS, Windows, or Linux depending on the installer you need."
+      exit 1
+      ;;
+  esac
   echo "  ✔ Build complete"
 fi
 

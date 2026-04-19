@@ -14,8 +14,23 @@ const releaseTargets = [
   },
   {
     platform: 'macos',
+    outputName: 'Autovyn-Desktop-arm64.dmg',
+    matchers: [/^Autovyn-Desktop-arm64\.dmg$/i, /^Autovyn[- ]Desktop[- ].*arm64.*\.dmg$/i, /arm64.*\.dmg$/i]
+  },
+  {
+    platform: 'macos',
+    outputName: 'Autovyn-Desktop-x64.dmg',
+    matchers: [/^Autovyn-Desktop-x64\.dmg$/i, /^Autovyn[- ]Desktop[- ].*x64.*\.dmg$/i, /x64.*\.dmg$/i]
+  },
+  {
+    platform: 'macos',
+    outputName: 'Autovyn-Desktop-universal.dmg',
+    matchers: [/^Autovyn-Desktop-universal\.dmg$/i, /^Autovyn[- ]Desktop[- ].*universal.*\.dmg$/i, /universal.*\.dmg$/i]
+  },
+  {
+    platform: 'macos',
     outputName: 'Autovyn-Desktop.dmg',
-    matchers: [/^Autovyn-Desktop\.dmg$/i, /^Autovyn[- ]Agent.*\.dmg$/i, /\.dmg$/i]
+    matchers: [/^Autovyn-Desktop\.dmg$/i, /^Autovyn[- ]Agent.*\.dmg$/i]
   },
   {
     platform: 'linux',

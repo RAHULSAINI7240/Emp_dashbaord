@@ -405,30 +405,42 @@
 
 .agent-download-card {
   margin-top: 1rem;
-  max-width: 560px;
-  border-radius: 20px;
-  padding: 1rem 1.05rem;
-  border: 1px solid #d5e3fa;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(238, 245, 255, 0.94) 100%);
-  box-shadow: 0 12px 24px rgba(28, 101, 181, 0.08);
+  width: 100%;
+  max-width: none;
+  border-radius: 22px;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(28, 101, 181, 0.14);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(241, 246, 255, 0.95) 100%);
+  box-shadow: 0 14px 28px rgba(28, 101, 181, 0.08);
 
   h4 {
-    margin: 0.2rem 0 0.35rem;
+    margin: 0.2rem 0 0.4rem;
     color: #17376a;
-    font-size: 1rem;
+    font-size: 1.08rem;
   }
 }
 
 .agent-download-eyebrow {
-  margin: 0;
+  margin: 0 0 0.28rem;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   color: #1c65b5;
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.agent-download-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.95fr);
+  gap: 1.1rem;
+  align-items: start;
+}
+
+.agent-download-copy {
+  min-width: 0;
 }
 
 .agent-download-note,
@@ -438,19 +450,74 @@
   line-height: 1.5;
 }
 
+.agent-download-steps {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.agent-download-steps span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 0.8rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(28, 101, 181, 0.12);
+  color: #345072;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
 .agent-download-helper {
-  margin-top: 0.7rem;
-  font-size: 0.82rem;
+  margin-top: 0.8rem;
+  font-size: 0.83rem;
+}
+
+.agent-download-side {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.agent-download-credentials {
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(28, 101, 181, 0.12);
+
+  strong {
+    display: block;
+    margin-top: 0.2rem;
+    color: #17376a;
+    font-size: 1.05rem;
+    line-height: 1.35;
+  }
+
+  span {
+    display: block;
+    margin-top: 0.35rem;
+    color: #61748e;
+    line-height: 1.45;
+  }
+}
+
+.agent-download-side-label {
+  margin: 0;
+  color: #1c65b5;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .agent-download-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 0.7rem;
-  margin-top: 0.85rem;
 }
 
 .agent-download-button {
+  width: 100%;
   border: 1px solid transparent;
   border-radius: 14px;
   padding: 0.8rem 1rem;
@@ -1232,6 +1299,10 @@ mat-icon {
 
   .vscode-status-cluster {
     justify-items: start;
+  }
+
+  .agent-download-layout {
+    grid-template-columns: 1fr;
   }
 
   .agent-download-actions {
