@@ -12,6 +12,7 @@
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "dist:mac": "electron-builder --mac dmg --x64 --arm64",
+    "dist:mac:universal": "electron-builder --mac dmg --universal",
     "dist:windows": "electron-builder --win nsis --x64",
     "dist:linux": "electron-builder --linux deb AppImage",
     "dist:linux:appimage": "electron-builder --linux AppImage",
@@ -63,6 +64,7 @@
         {
           "target": "dmg",
           "arch": [
+            "universal",
             "x64",
             "arm64"
           ]
@@ -70,7 +72,9 @@
       ],
       "icon": "assets/icon.png",
       "artifactName": "Autovyn-Desktop-${arch}.${ext}",
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.productivity",
+      "gatekeeperAssess": false,
+      "hardenedRuntime": true
     },
     "linux": {
       "target": [

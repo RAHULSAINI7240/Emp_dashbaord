@@ -12,7 +12,8 @@ const { DEFAULT_SETTINGS } = require('./session-store');
 const MIN_HEARTBEAT_SECONDS = 10;
 const MAX_HEARTBEAT_SECONDS = 600;
 const EVALUATION_INTERVAL_MS = 5000;
-const SCREENSHOT_INTERVAL_MS = 60 * 1000;
+const SCREENSHOT_MIN_INTERVAL_MS = 3 * 60 * 1000;   // 3 minutes
+const SCREENSHOT_MAX_INTERVAL_MS = 7 * 60 * 1000;   // 7 minutes
 const SCREENSHOT_FLUSH_INTERVAL_MS = 10 * 1000;
 const SCREENSHOT_UPLOAD_BATCH_SIZE = 50;
 const SCREENSHOT_RETENTION_MS = 2 * 24 * 60 * 60 * 1000;
@@ -580,7 +581,11 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
 
       evaluationHandle = setInterval(evaluateTime, EVALUATION_INTERVAL_MS);
       flushHandle = setInterval(flush, Math.max(10, Number(settings.heartbeatIntervalSeconds) || 10) * 1000);
-      screenshotHandle = setInterval(captureScreenshot, SCREENSHOT_INTERVAL_MS);
+      screenshotHandle = setTimeout(function scheduleScreenshot() {
+        void captureScreenshot();
+        const delay = SCREENSHOT_MIN_INTERVAL_MS + Math.random() * (SCREENSHOT_MAX_INTERVAL_MS - SCREENSHOT_MIN_INTERVAL_MS);
+        screenshotHandle = setTimeout(scheduleScreenshot, delay);
+      }, SCREENSHOT_MIN_INTERVAL_MS + Math.random() * (SCREENSHOT_MAX_INTERVAL_MS - SCREENSHOT_MIN_INTERVAL_MS));
       screenshotFlushHandle = setInterval(flushScreenshots, SCREENSHOT_FLUSH_INTERVAL_MS);
       if (session) {
         void flushScreenshots();
@@ -605,7 +610,7 @@ const createTrackerAgent = ({ app, store, onStateChange }) => {
       }
 
       if (screenshotHandle) {
-        clearInterval(screenshotHandle);
+        clearTimeout(screenshotHandle);
         screenshotHandle = null;
       }
 
